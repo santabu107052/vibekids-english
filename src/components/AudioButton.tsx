@@ -21,11 +21,18 @@ export const AudioButton: React.FC<AudioButtonProps> = ({
     e.stopPropagation();
     if (isPlaying) return;
     setIsPlaying(true);
+    
+    // Safety guard: sau tối đa 1.5 giây bắt buộc phải tắt icon xoay
+    const safetyTimer = setTimeout(() => {
+      setIsPlaying(false);
+    }, 1500);
+
     try {
       await playWordAudio(word, audioUrl);
     } catch {
       // ignore
     } finally {
+      clearTimeout(safetyTimer);
       setIsPlaying(false);
     }
   };

@@ -262,18 +262,15 @@ export function getReliableAudioUrl(word: string): string {
 export function speakWithBrowser(text: string, onEnd?: () => void, lang = 'en-US'): void {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
-      // Đảm bảo bật engine nếu nó bị pause
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
       }
-      window.speechSynthesis.cancel(); // Stop any pending speech
       
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang;
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
 
-      // An toàn: nếu onend không được gọi sau 2.5s thì tự ép gọi onEnd
       let ended = false;
       const safeEnd = () => {
         if (!ended) {
@@ -282,7 +279,7 @@ export function speakWithBrowser(text: string, onEnd?: () => void, lang = 'en-US
         }
       };
 
-      const fallbackTimer = setTimeout(safeEnd, 2500);
+      const fallbackTimer = setTimeout(safeEnd, 1500);
 
       utterance.onend = () => {
         clearTimeout(fallbackTimer);
@@ -309,7 +306,6 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
   const targetWord = word.trim();
   if (!targetWord) return Promise.resolve();
 
-  // Cancel any ongoing speech or audio immediately
   currentRequestId++;
   const thisRequestId = currentRequestId;
 
@@ -324,30 +320,18 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
     activeAudio = null;
   }
 
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    try {
-      window.speechSynthesis.cancel();
-    } catch {
-      // ignore
-    }
-  }
-
   return new Promise((resolve) => {
     let resolved = false;
     const safeResolve = () => {
       if (!resolved) {
         resolved = true;
-        if (activeAudio === audio) {
-          activeAudio = null;
-        }
+        activeAudio = null;
         resolve();
       }
     };
 
-    // Timeout an toàn tuyệt đối: sau 3.5 giây bắt buộc phải dừng icon xoay
-    const timer = setTimeout(() => {
-      safeResolve();
-    }, 3500);
+    // Timeout an toàn tuyệt đối: tối đa 1.8 giây là bắt buộc phải dừng icon xoay
+    const timer = setTimeout(safeResolve, 1800);
 
     const cleanup = () => {
       clearTimeout(timer);
@@ -359,31 +343,32 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
       ? audioUrl
       : getReliableAudioUrl(targetWord);
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    if (isIOS) {
-       speakWithBrowser(targetWord, cleanup);
-       return;
-    }
+    try {
+      const audio = new Audio();
+      audio.referrerPolicy = 'no-referrer';
+      audio.crossOrigin = 'anonymous';
+      audio.src = primaryUrl;
+      activeAudio = audio;
 
-    const audio = new Audio(primaryUrl);
-    activeAudio = audio;
+      audio.onended = () => {
+        if (thisRequestId !== currentRequestId) return;
+        cleanup();
+      };
 
-    audio.onended = () => {
-      if (thisRequestId !== currentRequestId) return;
-      cleanup();
-    };
-
-    audio.onerror = () => {
-      if (thisRequestId !== currentRequestId) return;
-      speakWithBrowser(targetWord, cleanup);
-    };
-
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
+      audio.onerror = () => {
         if (thisRequestId !== currentRequestId) return;
         speakWithBrowser(targetWord, cleanup);
-      });
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          if (thisRequestId !== currentRequestId) return;
+          speakWithBrowser(targetWord, cleanup);
+        });
+      }
+    } catch {
+      speakWithBrowser(targetWord, cleanup);
     }
   });
 }
