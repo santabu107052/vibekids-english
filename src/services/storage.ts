@@ -290,12 +290,22 @@ export function addRecommendedWordsBatch(
   const remainingList = getRemainingRecommendedWords(profileId);
   const toAdd = remainingList.slice(0, count);
 
-  for (const item of toAdd) {
-    addCustomWord(profileId, {
-      ...item,
-      id: `rec-${profileId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      isCustom: true,
-    });
+  if (toAdd.length > 0) {
+    const words = getCustomWords(profileId);
+    for (const item of toAdd) {
+      const newItem: WordItem = {
+        ...item,
+        id: `rec-${profileId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        isCustom: true,
+      };
+      const existingIdx = words.findIndex(w => w.word.toLowerCase() === newItem.word.toLowerCase());
+      if (existingIdx >= 0) {
+        words[existingIdx] = { ...words[existingIdx], ...newItem };
+      } else {
+        words.unshift(newItem);
+      }
+    }
+    saveCustomWords(profileId, words);
   }
 
   const remainingAfter = Math.max(0, remainingList.length - toAdd.length);
@@ -372,16 +382,52 @@ export function recordGameResult(profileId: string, result: GameScoreResult): Pr
     profile.badges.push('Bậc Thầy Từ Vựng');
   }
 
-  // Update mastery for each word
+  // Update mastery for each word in a single I/O pass (batch update)
+  const map = getWordProgressMap(profileId);
+  const nowIso = new Date().toISOString();
+
   for (const w of result.correctWords) {
-    updateWordProgress(profileId, '', w, true);
-  }
-  for (const w of result.wrongWords) {
-    updateWordProgress(profileId, '', w, false);
+    const key = w.toLowerCase();
+    const current = map[key] || {
+      masteryLevel: 0,
+      correctCount: 0,
+      incorrectCount: 0,
+      lastReviewed: nowIso,
+    };
+    current.correctCount += 1;
+    if (current.masteryLevel < 5) {
+      current.masteryLevel += 1;
+    }
+    current.lastReviewed = nowIso;
+    map[key] = current;
   }
 
-  // Live recalculation of today's unique words practiced
-  profile.todayCompletedCount = getTodayPracticedWordsCount(profileId);
+  for (const w of result.wrongWords) {
+    const key = w.toLowerCase();
+    const current = map[key] || {
+      masteryLevel: 0,
+      correctCount: 0,
+      incorrectCount: 0,
+      lastReviewed: nowIso,
+    };
+    current.incorrectCount += 1;
+    if (current.masteryLevel > 0) {
+      current.masteryLevel -= 1;
+    }
+    current.lastReviewed = nowIso;
+    map[key] = current;
+  }
+
+  saveWordProgressMap(profileId, map);
+
+  // Live recalculation of today's unique words practiced directly from memory
+  let todayCount = 0;
+  for (const progress of Object.values(map)) {
+    if (progress.lastReviewed && progress.lastReviewed.startsWith(today)) {
+      todayCount++;
+    }
+  }
+  profile.todayCompletedCount = todayCount;
   saveProfiles(profiles);
 
   return profile;

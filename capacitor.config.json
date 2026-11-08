@@ -3,9 +3,17 @@
   "appName": "VibeKids English",
   "webDir": "dist",
   "bundledWebRuntime": false,
+  "plugins": {
+    "AdMob": {
+      "appId": "ca-app-pub-3940256099942544~3347511713"
+    }
+  },
   "ios": {
     "contentInset": "always",
     "allowsLinkPreview": false,
     "scrollEnabled": true
+  },
+  "android": {
+    "allowMixedContent": true
   }
 }

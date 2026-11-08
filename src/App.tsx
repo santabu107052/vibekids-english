@@ -14,6 +14,7 @@ import { Navbar } from './components/Navbar';
 import { ProfileModal } from './components/ProfileModal';
 import { WordManagerModal } from './components/WordManagerModal';
 import { BackupRestoreModal } from './components/BackupRestoreModal';
+import { MonetizationModal } from './components/MonetizationModal';
 import { SentencePatternSection } from './components/SentencePatternSection';
 import { AudioButton } from './components/AudioButton';
 
@@ -58,6 +59,7 @@ export const App: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isWordManagerOpen, setIsWordManagerOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
+  const [isMonetizationOpen, setIsMonetizationOpen] = useState(false);
 
   // Vocabulary stats & list filter
   const [filterMastery, setFilterMastery] = useState<'all' | 'mastered' | 'learning' | 'new'>('all');
@@ -297,6 +299,7 @@ export const App: React.FC = () => {
         onOpenProfiles={() => setIsProfileModalOpen(true)}
         onOpenWordManager={() => setIsWordManagerOpen(true)}
         onOpenBackup={() => setIsBackupOpen(true)}
+        onOpenMonetization={() => setIsMonetizationOpen(true)}
       />
 
       <main className="max-w-6xl mx-auto px-4 pt-6 space-y-7">
@@ -740,6 +743,14 @@ export const App: React.FC = () => {
         isOpen={isBackupOpen}
         onClose={() => setIsBackupOpen(false)}
         onDataRestored={refreshData}
+      />
+
+      <MonetizationModal
+        isOpen={isMonetizationOpen}
+        onClose={() => setIsMonetizationOpen(false)}
+        onRewardReceived={() => {
+          refreshData();
+        }}
       />
     </div>
   );

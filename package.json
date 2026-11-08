@@ -6,6 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:mobile": "tsc -b && VITE_APP_TARGET=mobile vite build",
+    "build:web": "tsc -b && vite build",
+    "cap:sync": "pnpm build:mobile && pnpm exec cap sync",
+    "cap:copy": "pnpm build:mobile && pnpm exec cap copy",
     "preview": "vite preview",
     "deploy": "pnpm build && gh-pages -d dist"
   },
@@ -22,6 +26,11 @@
   "packageManager": "pnpm@12.18.0",
   "type": "module",
   "dependencies": {
+    "@capacitor-community/admob": "^8.3.0",
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
     "canvas-confetti": "^1.9.4",
     "lucide-react": "^1.70.0",
     "react": "^19.3.1",
