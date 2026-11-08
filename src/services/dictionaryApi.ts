@@ -320,6 +320,15 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
       speakWithBrowser(targetWord, cleanup);
     };
 
+    // Đối với iOS, ưu tiên Speech API nếu audio không tải được nhanh
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isIOS) {
+       // Thử phát Speech API ngay lập tức cho iOS để đảm bảo trải nghiệm tức thì
+       speakWithBrowser(targetWord, cleanup);
+       return;
+    }
+
     audio.play().catch(() => {
       if (thisRequestId !== currentRequestId) return;
       speakWithBrowser(targetWord, cleanup);
