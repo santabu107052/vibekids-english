@@ -132,6 +132,11 @@ export const WordManagerModal: React.FC<WordManagerModalProps> = ({
       incorrectCount: 0,
     };
 
+    if (existingWordSet.has(newWordItem.word.trim().toLowerCase())) {
+      setErrorMsg('Từ vựng này đã có trong sổ tay của bé rồi!');
+      return;
+    }
+
     addCustomWord(profile.id, newWordItem);
     setSuccessMsg(`Đã thêm thành công từ "${newWordItem.word}" vào sổ tay của bé!`);
     setInputWord('');
