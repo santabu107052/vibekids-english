@@ -337,6 +337,12 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
       ? audioUrl
       : getReliableAudioUrl(targetWord);
 
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+       speakWithBrowser(targetWord, cleanup);
+       return;
+    }
+
     const audio = new Audio(primaryUrl);
     activeAudio = audio;
 
