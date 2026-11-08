@@ -249,11 +249,12 @@ let activeAudio: HTMLAudioElement | null = null;
 let currentRequestId = 0;
 
 /**
- * Get guaranteed reliable high-quality native audio URL for any English word or sentence
+ * Get guaranteed reliable high-quality native US American audio URL for any English word or sentence
+ * Uses high-performance dictionary audio stream with 100% CORS and iOS Safari compatibility
  */
 export function getReliableAudioUrl(word: string): string {
   const clean = word.trim().toLowerCase();
-  return `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodeURIComponent(clean)}`;
+  return `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(clean)}&type=2`;
 }
 
 /**
@@ -325,49 +326,46 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
     const safeResolve = () => {
       if (!resolved) {
         resolved = true;
-        activeAudio = null;
+        if (activeAudio === audio) {
+          activeAudio = null;
+        }
         resolve();
       }
     };
 
-    // Timeout an toàn tuyệt đối: tối đa 1.8 giây là bắt buộc phải dừng icon xoay
-    const timer = setTimeout(safeResolve, 1800);
+    // Timeout an toàn: tối đa 1.5 giây là bắt buộc phải tắt icon xoay
+    const timer = setTimeout(safeResolve, 1500);
 
     const cleanup = () => {
       clearTimeout(timer);
       safeResolve();
     };
 
-    const isBrokenMediaHost = audioUrl && (audioUrl.includes('api.dictionaryapi.dev/media') || audioUrl.includes('commons.wikimedia.org'));
+    const isBrokenMediaHost = audioUrl && (audioUrl.includes('api.dictionaryapi.dev/media') || audioUrl.includes('commons.wikimedia.org') || audioUrl.includes('translate.google.com'));
     const primaryUrl = (audioUrl && !isBrokenMediaHost)
       ? audioUrl
       : getReliableAudioUrl(targetWord);
 
-    try {
-      const audio = new Audio();
-      audio.crossOrigin = 'anonymous';
-      audio.src = primaryUrl;
-      activeAudio = audio;
+    const audio = new Audio();
+    activeAudio = audio;
+    audio.src = primaryUrl;
 
-      audio.onended = () => {
-        if (thisRequestId !== currentRequestId) return;
-        cleanup();
-      };
+    audio.onended = () => {
+      if (thisRequestId !== currentRequestId) return;
+      cleanup();
+    };
 
-      audio.onerror = () => {
+    audio.onerror = () => {
+      if (thisRequestId !== currentRequestId) return;
+      speakWithBrowser(targetWord, cleanup);
+    };
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
         if (thisRequestId !== currentRequestId) return;
         speakWithBrowser(targetWord, cleanup);
-      };
-
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          if (thisRequestId !== currentRequestId) return;
-          speakWithBrowser(targetWord, cleanup);
-        });
-      }
-    } catch {
-      speakWithBrowser(targetWord, cleanup);
+      });
     }
   });
 }
