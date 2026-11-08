@@ -262,15 +262,37 @@ export function getReliableAudioUrl(word: string): string {
 export function speakWithBrowser(text: string, onEnd?: () => void, lang = 'en-US'): void {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
+      // Đảm bảo bật engine nếu nó bị pause
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
       window.speechSynthesis.cancel(); // Stop any pending speech
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang;
-      utterance.rate = 0.85; // Slightly slower for kids to hear clearly
-      utterance.pitch = 1.05; // Friendly tone
-      if (onEnd) {
-        utterance.onend = onEnd;
-        utterance.onerror = onEnd;
-      }
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+
+      // An toàn: nếu onend không được gọi sau 2.5s thì tự ép gọi onEnd
+      let ended = false;
+      const safeEnd = () => {
+        if (!ended) {
+          ended = true;
+          if (onEnd) onEnd();
+        }
+      };
+
+      const fallbackTimer = setTimeout(safeEnd, 2500);
+
+      utterance.onend = () => {
+        clearTimeout(fallbackTimer);
+        safeEnd();
+      };
+      utterance.onerror = () => {
+        clearTimeout(fallbackTimer);
+        safeEnd();
+      };
+
       window.speechSynthesis.speak(utterance);
     } catch {
       if (onEnd) onEnd();
