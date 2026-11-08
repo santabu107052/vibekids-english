@@ -311,6 +311,27 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
   }
 
   return new Promise((resolve) => {
+    let resolved = false;
+    const safeResolve = () => {
+      if (!resolved) {
+        resolved = true;
+        if (activeAudio === audio) {
+          activeAudio = null;
+        }
+        resolve();
+      }
+    };
+
+    // Timeout an toàn tuyệt đối: sau 3.5 giây bắt buộc phải dừng icon xoay
+    const timer = setTimeout(() => {
+      safeResolve();
+    }, 3500);
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      safeResolve();
+    };
+
     const isBrokenMediaHost = audioUrl && (audioUrl.includes('api.dictionaryapi.dev/media') || audioUrl.includes('commons.wikimedia.org'));
     const primaryUrl = (audioUrl && !isBrokenMediaHost)
       ? audioUrl
@@ -318,13 +339,6 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
 
     const audio = new Audio(primaryUrl);
     activeAudio = audio;
-
-    const cleanup = () => {
-      if (activeAudio === audio) {
-        activeAudio = null;
-      }
-      resolve();
-    };
 
     audio.onended = () => {
       if (thisRequestId !== currentRequestId) return;
@@ -336,10 +350,6 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
       speakWithBrowser(targetWord, cleanup);
     };
 
-    // Luôn ưu tiên dùng HTMLAudioElement và chỉ fallback sang speakWithBrowser khi lỗi
-    // Thêm một lớp xử lý cứng cho iOS: 
-    // Trình duyệt trên iOS bắt buộc phải có user gesture để phát Audio.
-    // Nếu audio.play() thất bại (do chính sách), chúng ta phải fallback ngay vào speakWithBrowser.
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
