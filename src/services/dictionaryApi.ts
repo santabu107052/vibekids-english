@@ -48,173 +48,192 @@ const COMMON_VI_TRANSLATIONS: Record<string, { meaning: string; emoji: string; c
   pencil: { meaning: 'Bút chì', emoji: '✏️', category: 'School', exampleVi: 'Bút chì dùng để vẽ tranh.' },
   school: { meaning: 'Trường học', emoji: '🏫', category: 'School', exampleVi: 'Mỗi ngày đến trường là một ngày vui.' },
   teacher: { meaning: 'Thầy/Cô giáo', emoji: '👩‍🏫', category: 'School', exampleVi: 'Cô giáo dạy chúng em rất tận tình.' },
-  water: { meaning: 'Nước', emoji: '💧', category: 'Food', exampleVi: 'Hãy uống đủ nước mỗi ngày nhé.' },
-  milk: { meaning: 'Sữa', emoji: '🥛', category: 'Food', exampleVi: 'Uống sữa giúp xương chắc khỏe.' },
-  happy: { meaning: 'Vui vẻ, hạnh phúc', emoji: '😊', category: 'Emotions', exampleVi: 'Hôm nay bé cảm thấy rất vui vẻ.' },
-  sun: { meaning: 'Mặt trời', emoji: '☀️', category: 'Nature', exampleVi: 'Mặt trời mọc ở hướng đông.' },
-  moon: { meaning: 'Mặt trăng', emoji: '🌙', category: 'Nature', exampleVi: 'Mặt trăng tròn sáng lung linh đêm rằm.' },
-  star: { meaning: 'Ngôi sao', emoji: '⭐', category: 'Nature', exampleVi: 'Những vì sao lấp lánh trên bầu trời.' },
-  rain: { meaning: 'Cơn mưa', emoji: '🌧️', category: 'Nature', exampleVi: 'Trời đang đổ mưa rào mát mẻ.' },
-  friend: { meaning: 'Bạn bè', emoji: '🤝', category: 'Daily Life', exampleVi: 'Họ là những người bạn thân thiết.' },
-  family: { meaning: 'Gia đình', emoji: '👨‍👩‍👧‍👦', category: 'Family', exampleVi: 'Gia đình luôn yêu thương đùm bọc nhau.' },
-  house: { meaning: 'Ngôi nhà', emoji: '🏡', category: 'Home', exampleVi: 'Ngôi nhà ấm cúng đầy ắp tiếng cười.' },
-  tree: { meaning: 'Cái cây', emoji: '🌳', category: 'Nature', exampleVi: 'Cây xanh cho bóng mát râm ran.' },
-  flower: { meaning: 'Bông hoa', emoji: '🌸', category: 'Nature', exampleVi: 'Bông hoa hồng nở rộ tỏa hương thơm.' },
-  music: { meaning: 'Âm nhạc', emoji: '🎵', category: 'Hobbies', exampleVi: 'Âm nhạc giúp tâm hồn thư thái.' },
-  play: { meaning: 'Chơi đùa', emoji: '🎮', category: 'Actions', exampleVi: 'Các bạn nhỏ thích chơi trò chơi ngoài sân.' },
-  read: { meaning: 'Đọc sách', emoji: '📖', category: 'Actions', exampleVi: 'Đọc sách giúp mở rộng tri thức.' },
-  sleep: { meaning: 'Ngủ', emoji: '😴', category: 'Actions', exampleVi: 'Bé đi ngủ sớm để có sức khỏe tốt.' },
+  student: { meaning: 'Học sinh', emoji: '🎒', category: 'School', exampleVi: 'Học sinh chăm chỉ học bài.' },
+  desk: { meaning: 'Bàn học', emoji: '🪑', category: 'School', exampleVi: 'Bàn học của em rất ngăn nắp.' },
+  chair: { meaning: 'Cái ghế', emoji: '🪑', category: 'School', exampleVi: 'Em ngồi ngay ngắn trên ghế.' },
+  table: { meaning: 'Cái bàn', emoji: '🪑', category: 'Home', exampleVi: 'Cả nhà ngồi quây quần bên bàn ăn.' },
+  milk: { meaning: 'Sữa tươi', emoji: '🥛', category: 'Food', exampleVi: 'Uống sữa giúp bé cao lớn hơn.' },
+  water: { meaning: 'Nước uống', emoji: '💧', category: 'Food', exampleVi: 'Hãy nhớ uống đủ nước mỗi ngày.' },
+  bread: { meaning: 'Bánh mì', emoji: '🍞', category: 'Food', exampleVi: 'Bánh mì nóng giòn thơm ngon.' },
+  egg: { meaning: 'Quả trứng', emoji: '🥚', category: 'Food', exampleVi: 'Trứng luộc ăn rất bổ dưỡng.' },
+  fish: { meaning: 'Con cá', emoji: '🐟', category: 'Animals', exampleVi: 'Đàn cá bơi lội dưới nước.' },
+  meat: { meaning: 'Thịt', emoji: '🥩', category: 'Food', exampleVi: 'Mẹ nấu món thịt kho thơm ngon.' },
+  rice: { meaning: 'Cơm, gạo', emoji: '🍚', category: 'Food', exampleVi: 'Bữa cơm gia đình ấm cúng.' },
+  sun: { meaning: 'Mặt trời', emoji: '☀️', category: 'Nature', exampleVi: 'Mặt trời mọc vào buổi sớm mai.' },
+  moon: { meaning: 'Mặt trăng', emoji: '🌙', category: 'Nature', exampleVi: 'Mặt trăng tròn tỏa sáng ban đêm.' },
+  star: { meaning: 'Ngôi sao', emoji: '⭐', category: 'Nature', exampleVi: 'Những ngôi sao lấp lánh trên trời cao.' },
+  rain: { meaning: 'Cơn mưa', emoji: '🌧️', category: 'Nature', exampleVi: 'Mưa tưới mát cây cối trong vườn.' },
+  tree: { meaning: 'Cây cối', emoji: '🌳', category: 'Nature', exampleVi: 'Cây xanh cho bóng mát trong sân.' },
+  flower: { meaning: 'Bông hoa', emoji: '🌸', category: 'Nature', exampleVi: 'Những bông hoa nở rộ khoe sắc.' },
+  house: { meaning: 'Ngôi nhà', emoji: '🏠', category: 'Home', exampleVi: 'Ngôi nhà thân yêu của gia đình em.' },
+  room: { meaning: 'Căn phòng', emoji: '🚪', category: 'Home', exampleVi: 'Phòng của em rất sạch sẽ và gọn gàng.' },
+  bed: { meaning: 'Chiếc giường', emoji: '🛏️', category: 'Home', exampleVi: 'Em ngủ ngoan trên chiếc giường êm ái.' },
+  door: { meaning: 'Cánh cửa', emoji: '🚪', category: 'Home', exampleVi: 'Em mở cửa đón gió ban mai.' },
+  window: { meaning: 'Cửa sổ', emoji: '🪟', category: 'Home', exampleVi: 'Ánh nắng chan hòa chiếu qua cửa sổ.' },
+  clock: { meaning: 'Đồng hồ', emoji: '⏰', category: 'Home', exampleVi: 'Đồng hồ báo thức reng reng mỗi sáng.' },
+  baby: { meaning: 'Em bé', emoji: '👶', category: 'Family', exampleVi: 'Em bé có nụ cười rất dễ thương.' },
+  father: { meaning: 'Bố, cha', emoji: '👨', category: 'Family', exampleVi: 'Bố em là người dũng cảm và yêu thương gia đình.' },
+  mother: { meaning: 'Mẹ', emoji: '👩', category: 'Family', exampleVi: 'Mẹ là người nấu ăn ngon nhất trần đời.' },
+  brother: { meaning: 'Anh/Em trai', emoji: '👦', category: 'Family', exampleVi: 'Anh trai luôn dạy em học bài.' },
+  sister: { meaning: 'Chị/Em gái', emoji: '👧', category: 'Family', exampleVi: 'Chị gái cùng em vui chơi mỗi ngày.' },
+  friend: { meaning: 'Bạn bè', emoji: '🤝', category: 'Family', exampleVi: 'Chúng em là những người bạn tốt của nhau.' },
+  happy: { meaning: 'Vui vẻ, hạnh phúc', emoji: '😊', category: 'Feelings', exampleVi: 'Bé cảm thấy rất vui vẻ hôm nay.' },
+  sad: { meaning: 'Buồn bã', emoji: '😢', category: 'Feelings', exampleVi: 'Đừng buồn nhé, ngày mai trời lại sáng.' },
+  big: { meaning: 'To lớn', emoji: '🐘', category: 'Adjectives', exampleVi: 'Con voi có thân hình rất to lớn.' },
+  small: { meaning: 'Nhỏ bé', emoji: '🐭', category: 'Adjectives', exampleVi: 'Chú chuột nhỏ chạy thoăn thoắt.' },
+  fast: { meaning: 'Nhanh nhẹn', emoji: '⚡', category: 'Adjectives', exampleVi: 'Con báo chạy cực kỳ nhanh.' },
+  slow: { meaning: 'Chậm chạp', emoji: '🐢', category: 'Adjectives', exampleVi: 'Chú rùa bò từ từ trên bãi cỏ.' },
+  good: { meaning: 'Tốt, giỏi', emoji: '👍', category: 'Adjectives', exampleVi: 'Hôm nay bé làm rất tốt.' },
+  sweet: { meaning: 'Ngọt ngào', emoji: '🍭', category: 'Food', exampleVi: 'Kẹo mút có vị ngọt ngào.' },
+  warm: { meaning: 'Ấm áp', emoji: '☀️', category: 'Adjectives', exampleVi: 'Ánh nắng mùa xuân ấm áp chan hòa.' },
+  red: { meaning: 'Màu đỏ', emoji: '🔴', category: 'Colors', exampleVi: 'Quả dâu tây có màu đỏ tươi.' },
+  blue: { meaning: 'Màu xanh dương', emoji: '🔵', category: 'Colors', exampleVi: 'Bầu trời mùa thu xanh biếc.' },
+  yellow: { meaning: 'Màu vàng', emoji: '🟡', category: 'Colors', exampleVi: 'Bông hoa cúc vàng rực rỡ.' },
+  green: { meaning: 'Màu xanh lá', emoji: '🟢', category: 'Colors', exampleVi: 'Lá cây non xanh mơn mởn.' },
+  white: { meaning: 'Màu trắng', emoji: '⚪', category: 'Colors', exampleVi: 'Những đám mây trắng bồng bềnh.' },
+  black: { meaning: 'Màu đen', emoji: '⚫', category: 'Colors', exampleVi: 'Màn đêm đen lung linh ánh sao.' },
+  pink: { meaning: 'Màu hồng', emoji: '🌸', category: 'Colors', exampleVi: 'Chiếc váy màu hồng xinh xắn.' },
+  one: { meaning: 'Số một (1)', emoji: '1️⃣', category: 'Numbers', exampleVi: 'Bé có một quả bóng đỏ.' },
+  two: { meaning: 'Số hai (2)', emoji: '2️⃣', category: 'Numbers', exampleVi: 'Hai chú chim hót trên cành.' },
+  three: { meaning: 'Số ba (3)', emoji: '3️⃣', category: 'Numbers', exampleVi: 'Có ba bạn nhỏ cùng đọc sách.' },
+  four: { meaning: 'Số bốn (4)', emoji: '4️⃣', category: 'Numbers', exampleVi: 'Chiếc xe hơi có bốn bánh tròn.' },
+  five: { meaning: 'Số năm (5)', emoji: '5️⃣', category: 'Numbers', exampleVi: 'Bàn tay xinh có năm ngón nhỏ.' },
 };
 
-/**
- * Fetch knowledge from Free Dictionary API (audio, phonetic, definitions, examples)
- */
-export async function fetchWordKnowledge(rawWord: string): Promise<Partial<WordItem>> {
-  const word = rawWord.trim().toLowerCase();
-  if (!word) {
-    throw new Error('Vui lòng nhập từ vựng hợp lệ.');
+export async function fetchWordKnowledge(word: string): Promise<Partial<WordItem>> {
+  const cleanWord = word.trim().toLowerCase();
+  
+  // 1. Check built-in instant database
+  if (COMMON_VI_TRANSLATIONS[cleanWord]) {
+    const item = COMMON_VI_TRANSLATIONS[cleanWord];
+    return {
+      word: cleanWord,
+      meaningVi: item.meaning,
+      category: item.category,
+      emoji: item.emoji,
+      exampleSentence: `I see a ${cleanWord}.`,
+      exampleVi: item.exampleVi || `Tôi nhìn thấy ${item.meaning}.`,
+      phonetic: `/${cleanWord}/`,
+      audioUrl: getReliableAudioUrl(cleanWord),
+    };
   }
 
-  const result: Partial<WordItem> = {
-    word,
-    emoji: '📝',
-    category: 'Chung',
-    partOfSpeech: 'noun',
-    masteryLevel: 0,
-    correctCount: 0,
-    incorrectCount: 0,
-  };
-
-  // Check built-in quick dictionary
-  if (COMMON_VI_TRANSLATIONS[word]) {
-    const info = COMMON_VI_TRANSLATIONS[word];
-    result.meaningVi = info.meaning;
-    result.emoji = info.emoji;
-    result.category = info.category;
-    result.exampleVi = info.exampleVi;
-  }
+  // 2. Fetch from Dictionary API
+  let phonetic = '';
+  let audioUrl = '';
+  let definitionEn = '';
+  let exampleSentence = '';
+  let partOfSpeech = 'noun';
 
   try {
-    const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-    if (response.ok) {
-      const data: ApiDictionaryResult[] = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`);
+    if (res.ok) {
+      const data: ApiDictionaryResult[] = await res.json();
+      if (data && data[0]) {
         const entry = data[0];
+        phonetic = entry.phonetic || entry.phonetics?.find(p => p.text)?.text || '';
         
-        // Find phonetic
-        result.phonetic = entry.phonetic || entry.phonetics.find(p => p.text)?.text || '';
-
-        // Find native audio
-        const audioObj = entry.phonetics.find(p => p.audio && p.audio.trim().length > 0);
-        if (audioObj && audioObj.audio) {
-          result.audioUrl = audioObj.audio;
+        // Find phonetic audio if valid
+        const validAudio = entry.phonetics?.find(p => p.audio && p.audio.startsWith('http') && !p.audio.includes('api.dictionaryapi.dev/media'));
+        if (validAudio?.audio) {
+          audioUrl = validAudio.audio;
         }
 
-        // Find primary meaning & example
+        // Meanings & Examples
         if (entry.meanings && entry.meanings.length > 0) {
-          const firstMeaning = entry.meanings[0];
-          result.partOfSpeech = firstMeaning.partOfSpeech || 'noun';
-          
-          if (firstMeaning.definitions && firstMeaning.definitions.length > 0) {
-            const firstDef = firstMeaning.definitions[0];
-            result.definitionEn = firstDef.definition;
-            if (firstDef.example) {
-              result.exampleSentence = firstDef.example;
+          const m = entry.meanings[0];
+          partOfSpeech = m.partOfSpeech || 'noun';
+          if (m.definitions && m.definitions.length > 0) {
+            definitionEn = m.definitions[0].definition || '';
+            const defWithEx = m.definitions.find(d => d.example);
+            if (defWithEx?.example) {
+              exampleSentence = defWithEx.example;
             }
-          }
-
-// Re-add the loop because I removed it by mistake in the previous edit.
-          // If first definition didn't have example, look in others
-          if (!result.exampleSentence) {
-            for (const m of entry.meanings) {
-              const defWithEx = m.definitions.find(d => d.example);
-              if (defWithEx && defWithEx.example) {
-                result.exampleSentence = defWithEx.example;
-                break;
-              }
-            }
-          }
-
-          // Fallback example if still empty
-          if (!result.exampleSentence) {
-             result.exampleSentence = `I am learning the word "${word}" today.`;
           }
         }
       }
     }
-  } catch (error) {
-    console.warn(`[DictionaryAPI] Không kết nối được online cho từ "${word}", dùng fallback.`, error);
+  } catch (err) {
+    console.warn('[Dictionary] Free Dictionary API failed, using fallback TTS...', err);
   }
 
-  // 2. Fetch reliable Vietnamese translation if not found in built-in
-  if (!result.meaningVi) {
-    result.meaningVi = await translateWordToVi(word);
+  // Fallback TTS
+  if (!audioUrl) {
+    audioUrl = getReliableAudioUrl(cleanWord);
   }
 
-  // Fallbacks if still empty
-  if (!result.definitionEn) result.definitionEn = `A word to learn: ${word}.`;
-  if (!result.exampleSentence) result.exampleSentence = `I am learning the word ${word} today.`;
-  if (!result.meaningVi) result.meaningVi = `${word}`;
-  if (!result.phonetic) result.phonetic = `/${word}/`;
+  // 3. Multi-Engine Translation to Vietnamese
+  const meaningVi = await translateToVietnamese(cleanWord);
 
-  return result;
+  return {
+    word: cleanWord,
+    phonetic: phonetic || `/${cleanWord}/`,
+    audioUrl,
+    partOfSpeech,
+    meaningVi,
+    definitionEn,
+    exampleSentence: exampleSentence || `The ${cleanWord} is very nice.`,
+    exampleVi: `Từ "${cleanWord}" có nghĩa là: ${meaningVi}.`,
+    category: 'Chủ đề chung',
+    emoji: '📖',
+  };
 }
 
 /**
- * Translate English word to Vietnamese using multiple high-reliability engines
+ * High-reliability multi-engine translator to Vietnamese
  */
-export async function translateWordToVi(rawWord: string): Promise<string> {
-  const clean = rawWord.trim().toLowerCase();
+export async function translateToVietnamese(text: string): Promise<string> {
+  const clean = text.trim();
   if (!clean) return '';
 
-  // 1. Built-in vocabulary check (instant & 100% accurate)
-  if (COMMON_VI_TRANSLATIONS[clean]?.meaning) {
-    return COMMON_VI_TRANSLATIONS[clean].meaning;
+  const lower = clean.toLowerCase();
+  if (COMMON_VI_TRANSLATIONS[lower]) {
+    return COMMON_VI_TRANSLATIONS[lower].meaning;
   }
 
-  // 2. Primary Engine: Google Chrome Translate API (CORS enabled, clean output e.g. ["thể thao"])
+  // Engine 1: Google Translate Extension Endpoint (Fast, High CORS compatibility)
   try {
     const url = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=vi&q=${encodeURIComponent(clean)}`;
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data[0] && typeof data[0] === 'string') {
-        const trans = data[0].trim();
-        if (trans.toLowerCase() !== clean) {
-          return trans;
+      if (data && Array.isArray(data) && data[0]) {
+        const translated = String(data[0]).trim();
+        if (translated && translated.toLowerCase() !== lower) {
+          return translated;
         }
       }
     }
   } catch (e) {
-    console.warn('[Translate] clients5 API failed, trying fallback...', e);
+    console.warn('[Translate] Google Clients5 API failed...', e);
   }
 
-  // 3. Secondary Engine: Google Translate gtx single endpoint
+  // Engine 2: Google Translate Single endpoint
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(clean)}`;
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       if (data && data[0] && data[0][0] && data[0][0][0]) {
-        const trans = data[0][0][0].trim();
-        if (trans.toLowerCase() !== clean) {
-          return trans;
+        const translated = String(data[0][0][0]).trim();
+        if (translated && translated.toLowerCase() !== lower) {
+          return translated;
         }
       }
     }
   } catch (e) {
-    console.warn('[Translate] translate.googleapis.com failed, trying fallback...', e);
+    console.warn('[Translate] Google Translate single API failed...', e);
   }
 
-  // 4. Tertiary Engine: MyMemory API
+  // Engine 3: MyMemory API Fallback
   try {
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=en|vi`;
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
-      if (data?.responseData?.translatedText) {
+      if (data.responseData?.translatedText) {
         const trans = data.responseData.translatedText.trim();
-        if (trans.toLowerCase() !== clean) {
+        if (trans && trans.toLowerCase() !== lower && !trans.includes('MYMEMORY WARNING')) {
           return trans;
         }
       }
@@ -292,8 +311,6 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
   }
 
   return new Promise((resolve) => {
-    // If audioUrl is provided and not from the broken dictionaryapi media host, use it;
-    // Otherwise use Google Translate TTS which is 100% accurate, fast, and native
     const isBrokenMediaHost = audioUrl && (audioUrl.includes('api.dictionaryapi.dev/media') || audioUrl.includes('commons.wikimedia.org'));
     const primaryUrl = (audioUrl && !isBrokenMediaHost)
       ? audioUrl
@@ -316,21 +333,10 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
 
     audio.onerror = () => {
       if (thisRequestId !== currentRequestId) return;
-      // Fallback to browser Web Speech API
       speakWithBrowser(targetWord, cleanup);
     };
 
-    // Đối với iOS, ưu tiên Speech API nếu audio không tải được nhanh
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    
-    if (isIOS) {
-       // Chỉ phát Speech API cho iOS
-       speakWithBrowser(targetWord, cleanup);
-       // Đảm bảo không để biến activeAudio tham chiếu đến audio object không dùng này
-       activeAudio = null; 
-       return;
-    }
-
+    // Luôn ưu tiên dùng HTMLAudioElement và chỉ fallback sang speakWithBrowser khi lỗi
     audio.play().catch(() => {
       if (thisRequestId !== currentRequestId) return;
       speakWithBrowser(targetWord, cleanup);
