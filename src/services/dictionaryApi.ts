@@ -345,7 +345,6 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
 
     try {
       const audio = new Audio();
-      audio.referrerPolicy = 'no-referrer';
       audio.crossOrigin = 'anonymous';
       audio.src = primaryUrl;
       activeAudio = audio;
