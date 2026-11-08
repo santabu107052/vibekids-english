@@ -324,7 +324,7 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     
     if (isIOS) {
-       // Thử phát Speech API ngay lập tức cho iOS để đảm bảo trải nghiệm tức thì
+       // Chỉ phát Speech API cho iOS và hủy bỏ mọi nỗ lực tải audio từ nguồn bên ngoài
        speakWithBrowser(targetWord, cleanup);
        return;
     }
