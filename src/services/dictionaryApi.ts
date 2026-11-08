@@ -337,9 +337,15 @@ export function playWordAudio(word: string, audioUrl?: string): Promise<void> {
     };
 
     // Luôn ưu tiên dùng HTMLAudioElement và chỉ fallback sang speakWithBrowser khi lỗi
-    audio.play().catch(() => {
-      if (thisRequestId !== currentRequestId) return;
-      speakWithBrowser(targetWord, cleanup);
-    });
+    // Thêm một lớp xử lý cứng cho iOS: 
+    // Trình duyệt trên iOS bắt buộc phải có user gesture để phát Audio.
+    // Nếu audio.play() thất bại (do chính sách), chúng ta phải fallback ngay vào speakWithBrowser.
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        if (thisRequestId !== currentRequestId) return;
+        speakWithBrowser(targetWord, cleanup);
+      });
+    }
   });
 }
