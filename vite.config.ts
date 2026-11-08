@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  base: '/vibekids-english/',
   server: {
     host: '0.0.0.0',
     port: 5173,
