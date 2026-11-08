@@ -1,0 +1,18 @@
+{
+  "name": "VibeKids English - Bé Học Tiếng Anh",
+  "short_name": "VibeKids",
+  "description": "Ứng dụng học tiếng Anh qua game sinh động cho bé 6-15 tuổi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
