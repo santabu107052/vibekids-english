@@ -12,21 +12,18 @@ export default defineConfig({
   ],
   base: process.env.VITE_APP_TARGET === 'mobile' ? './' : '/vibekids-english/',
   build: {
-    chunkSizeWarningLimit: 800,
+    // Tự động phân tách vendor chunk theo khuyến nghị của Maintenance Architect
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'vendor-react';
-            }
-            if (id.includes('lucide-react') || id.includes('canvas-confetti')) {
-              return 'vendor-ui';
-            }
-            if (id.includes('@capacitor')) {
-              return 'vendor-capacitor';
-            }
-            return 'vendor';
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/canvas-confetti')) {
+            return 'vendor-ui';
+          }
+          if (id.includes('node_modules/@capacitor')) {
+            return 'vendor-capacitor';
           }
         },
       },
