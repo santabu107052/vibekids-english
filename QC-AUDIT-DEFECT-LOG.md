@@ -35,6 +35,7 @@
 | **BUG-34** | Thư viện từ bị rút gọn | **Major** | Hiển thị 2 từ do xung đột build | Dữ liệu bị tạm thu nhỏ để cô lập lỗi | Khôi phục 105+ từ vựng chuẩn quốc tế | 🟢 **ĐÃ SỬA** |
 | **BUG-35** | Mở rộng bank & Thiếu Game Lật Thẻ | **Major** | Bank từ hẹp, thiếu game lật thẻ | Bank từ cũ, thiếu cấu trúc 5 mini-game | Mở rộng 275+ từ vựng, tích hợp game Memory Flip | 🟢 **ĐÃ SỬA** |
 | **BUG-36** | Đóng gói Mobile & AdMob | **Enhancement** | Cần đưa lên store, kiếm tiền | Chưa có native layer | Cấu hình Capacitor, tích hợp AdMob, hướng dẫn xuất bản | 🟢 **ĐÃ SỬA** |
+| **BUG-37** | Lỗi 404 khi mở App từ Màn hình chính (PWA Standalone trên iOS Safari) | **Critical (PWA)** | Mở trong Safari bình thường nhưng khi "Thêm vào MH chính" (Add to Home Screen) và bấm mở icon ngoài màn hình thì bị lỗi 404 từ GitHub Pages. | Trong `public/manifest.json`, thuộc tính `start_url: "/"` trỏ thẳng về trang chủ domain gốc `https://santabu107052.github.io/` (thay vì subfolder `/vibekids-english/`), khiến GitHub Pages báo 404 File Not Found. | 1. Chuẩn hóa `start_url: "./"` và `scope: "./"` trong `manifest.json`.<br>2. Chuyển đường dẫn `<link rel="manifest">` sang đường dẫn tương đối an toàn.<br>3. Tạo file `dist/404.html` tự động nhân bản từ `index.html` trong script deploy để luôn điều hướng đúng Single Page App. | 🟢 **ĐÃ SỬA & ĐÃ DEPLOY** |
 
 ## 2. Quy Trình Kiểm Thử Hồi Quy (Regression Testing Checklist)
 - [x] **TC-01** - **TC-26**: Đạt.
@@ -44,3 +45,4 @@
 - [x] **TC-34**: Thư viện từ vựng khuyến nghị đầy đủ 275+ từ (Phân cấp 6-8, 9-11, 12-15t).
 - [x] **TC-35**: Game luân phiên đủ 5 trò chơi (Memory Flip ➔ Bubble Match ➔ Sound Detective ➔ Scramble ➔ Spelling).
 - [x] **TC-36**: Đóng gói Mobile & AdMob: Đã tích hợp sẵn sàng, cấu hình chuẩn an toàn trẻ em (COPPA). Hướng dẫn xuất file native tại `MOBILE-PUBLISH-GUIDE.md`.
+- [x] **TC-37**: Thêm vào Màn hình chính (Add to Home Screen) mở app tràn viền mượt mà không còn bị lỗi 404.
