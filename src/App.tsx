@@ -17,6 +17,8 @@ import { BackupRestoreModal } from './components/BackupRestoreModal';
 import { MonetizationModal } from './components/MonetizationModal';
 import { GameSetupModal, GameLearningMode } from './components/GameSetupModal';
 import { SentencePatternSection } from './components/SentencePatternSection';
+import { EchoVoiceRecorder } from './components/EchoVoiceRecorder';
+import { SkillsRadarCard } from './components/SkillsRadarCard';
 import { AudioButton } from './components/AudioButton';
 
 // Standalone Games
@@ -77,6 +79,7 @@ export const App: React.FC = () => {
   const [isWordManagerOpen, setIsWordManagerOpen] = useState(false);
   const [isBackupOpen, setIsBackupOpen] = useState(false);
   const [isMonetizationOpen, setIsMonetizationOpen] = useState(false);
+  const [echoWord, setEchoWord] = useState<WordItem | null>(null);
 
   // Vocabulary stats & list filter
   const [filterMastery, setFilterMastery] = useState<'all' | 'mastered' | 'learning' | 'new'>('all');
@@ -121,6 +124,17 @@ export const App: React.FC = () => {
   // Live today's practiced words calculation
   const todayPracticedCount = getTodayPracticedWordsCount(activeProfile.id);
   const remainingRecCount = getRemainingRecommendedWords(activeProfile.id).length;
+
+  // Calculate 4 skill radar scores
+  const totalCorrect = words.reduce((acc, w) => acc + (w.correctCount || 0), 0);
+  const totalIncorrect = words.reduce((acc, w) => acc + (w.incorrectCount || 0), 0);
+  const totalAnswers = totalCorrect + totalIncorrect;
+  const baseAccuracy = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 75;
+
+  const listeningScore = Math.min(100, Math.max(30, baseAccuracy + (masteredCount * 2)));
+  const readingScore = Math.min(100, Math.max(40, Math.round(((masteredCount + learningCount) / Math.max(1, words.length)) * 100)));
+  const spellingScore = Math.min(100, Math.max(25, baseAccuracy - 5 + (activeProfile.level * 5)));
+  const sentenceScore = Math.min(100, Math.max(20, (activeProfile.level * 15)));
 
   const handleBatchAddRecommended = (count: number = 5) => {
     setAlertNotice(null);
@@ -547,6 +561,15 @@ export const App: React.FC = () => {
             </div>
           )}
 
+          {/* Bản Đồ 4 Kỹ Năng Thông Minh Của Bé */}
+          <SkillsRadarCard
+            listeningScore={listeningScore}
+            readingScore={readingScore}
+            spellingScore={spellingScore}
+            sentenceScore={sentenceScore}
+            totalPracticed={totalAnswers}
+          />
+
           {/* Sổ Tay Từ Vựng Chi Tiết (Word List Preview) */}
           <section className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
@@ -575,11 +598,11 @@ export const App: React.FC = () => {
                   </button>
                 )}
                 <button
-                  onClick={() => handleBatchAddRecommended(5)}
+                  onClick={() => handleBatchAddRecommended(15)}
                   className="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
                 >
                   <Sparkles size={14} className="fill-white" />
-                  <span>Nạp từ khuyến nghị (+5)</span>
+                  <span>Nạp từ khuyến nghị (+15)</span>
                   {remainingRecCount > 0 && (
                     <span className="px-1.5 py-0.2 bg-white/25 rounded-md text-[10px] font-mono">
                       còn {remainingRecCount}
@@ -617,6 +640,14 @@ export const App: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setEchoWord(w)}
+                        title="Luyện phát âm nhại lại"
+                        className="w-8 h-8 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-600 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                      >
+                        <span className="text-sm">🎙️</span>
+                      </button>
                       <AudioButton word={w.word} audioUrl={w.audioUrl} size="sm" />
                       {w.isCustom && (
                         <button
@@ -807,6 +838,21 @@ export const App: React.FC = () => {
           refreshData();
         }}
       />
+
+      {/* Echo Voice Recorder Modal */}
+      {echoWord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="max-w-md w-full">
+            <EchoVoiceRecorder
+              word={echoWord.word}
+              phonetic={echoWord.phonetic}
+              meaningVi={echoWord.meaningVi}
+              audioUrl={echoWord.audioUrl}
+              onClose={() => setEchoWord(null)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Game Setup Modal (Chế độ học + Số lượng câu hỏi >= 10 hoặc Vô tận) */}
       <GameSetupModal

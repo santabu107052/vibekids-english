@@ -5,6 +5,7 @@ import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
 import { Check, X, Volume2, Sparkles, ArrowRight, Lightbulb, RotateCcw } from 'lucide-react';
+import { soundManager } from '../../services/soundEffects';
 
 interface VocabRotatingAdventureProps {
   words: WordItem[];
@@ -180,10 +181,12 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     setIsAnswered(true);
 
     if (isCorrect) {
+      soundManager.playCorrect();
       setScore((prev) => prev + 20);
       setCorrectWords((prev) => [...prev, currentWord.word]);
       updateWordProgress(profile.id, currentWord.id, currentWord.word, true);
     } else {
+      soundManager.playWrong();
       setWrongWords((prev) => [...prev, currentWord.word]);
       updateWordProgress(profile.id, currentWord.id, currentWord.word, false);
     }

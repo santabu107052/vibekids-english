@@ -5,6 +5,7 @@ import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
 import { AudioButton } from '../AudioButton';
+import { soundManager } from '../../services/soundEffects';
 import { Check, X, Sparkles } from 'lucide-react';
 
 interface WordMatchGameProps {
@@ -94,10 +95,12 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
     const isCorrect = option.id === currentWord.id;
 
     if (isCorrect) {
+      soundManager.playCorrect();
       setScore((prev) => prev + 10);
       setCorrectWords((prev) => [...prev, currentWord.word]);
       playWordAudio(currentWord.word, currentWord.audioUrl);
     } else {
+      soundManager.playWrong();
       setLives((prev) => Math.max(0, prev - 1));
       setWrongWords((prev) => [...prev, currentWord.word]);
     }

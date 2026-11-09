@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { Trophy, Star, Sparkles, RotateCcw, Home } from 'lucide-react';
 import { GameScoreResult } from '../../types';
+import { soundManager } from '../../services/soundEffects';
 
 interface GameVictoryModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const GameVictoryModal: React.FC<GameVictoryModalProps> = ({
 }) => {
   useEffect(() => {
     if (isOpen) {
+      soundManager.playVictory();
       confetti({
         particleCount: 80,
         spread: 70,

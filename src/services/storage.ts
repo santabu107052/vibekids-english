@@ -114,6 +114,14 @@ export function createProfile(name: string, age: number, avatar: string, dailyGo
   profiles.push(newProfile);
   saveProfiles(profiles);
   setActiveProfileId(newProfile.id);
+
+  // Tự động nạp trước gói từ vựng khởi đầu phong phú (20 từ) phù hợp với độ tuổi của bé
+  try {
+    addRecommendedWordsBatch(newProfile.id, 20);
+  } catch (err) {
+    console.warn('Không thể nạp từ khởi tạo:', err);
+  }
+
   return newProfile;
 }
 
