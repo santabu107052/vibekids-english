@@ -96,8 +96,8 @@ export const WordManagerModal: React.FC<WordManagerModalProps> = ({
       setExampleSentence(data.exampleSentence || '');
       setExampleVi(data.exampleVi || '');
       setEmoji(data.emoji || '📖');
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Lỗi tra cứu từ vựng.');
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'Lỗi tra cứu từ vựng.');
     } finally {
       setIsSearching(false);
     }

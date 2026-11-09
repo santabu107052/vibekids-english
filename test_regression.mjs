@@ -4,7 +4,7 @@ import path from 'path';
 const projectRoot = path.resolve('.');
 
 console.log('====================================================');
-console.log('🚀 BẮT ĐẦU KIỂM THỬ HỒI QUY TOÀN DIỆN (BUG-01 ĐẾN BUG-36)');
+console.log('🚀 BẮT ĐẦU KIỂM THỬ HỒI QUY TOÀN DIỆN (BUG-01 ĐẾN BUG-41)');
 console.log('====================================================\n');
 
 let passedTests = 0;
@@ -30,7 +30,19 @@ assert(
 );
 
 // 2. BUG-02 & BUG-27: Thống kê Tiến độ & 4 ô thống kê
-const appContent = fs.readFileSync(path.join(projectRoot, 'src/App.tsx'), 'utf8');
+const appFiles = [
+  'src/App.tsx',
+  'src/components/router/GameRouter.tsx',
+  'src/components/dashboard/HeroSection.tsx',
+  'src/components/dashboard/VocabStatsSection.tsx',
+  'src/components/dashboard/WordNotebookSection.tsx',
+  'src/components/dashboard/GameKingdomsSection.tsx',
+  'src/components/dashboard/BadgesSection.tsx',
+];
+const appContent = appFiles
+  .filter((f) => fs.existsSync(path.join(projectRoot, f)))
+  .map((f) => fs.readFileSync(path.join(projectRoot, f), 'utf8'))
+  .join('\n');
 assert(
   appContent.includes('Tổng từ vựng') && 
   appContent.includes('Đã thành thạo') && 
@@ -217,6 +229,105 @@ assert(
   fs.existsSync(path.join(projectRoot, 'MOBILE-PUBLISH-GUIDE.md')),
   'BUG-36',
   'Cấu hình AdMob 100% Google Test IDs, chuẩn COPPA, có hướng dẫn xuất bản chi tiết'
+);
+
+// 24. BUG-37: PWA Standalone - Tương đối hóa start_url và scope
+const manifestContent = fs.readFileSync(path.join(projectRoot, 'public/manifest.json'), 'utf8');
+const packageJsonContent = fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8');
+assert(
+  manifestContent.includes('"start_url": "./"') &&
+  manifestContent.includes('"scope": "./"') &&
+  packageJsonContent.includes('dist/404.html'),
+  'BUG-37',
+  'Manifest chuẩn hóa đường dẫn tương đối (./) và deploy tự sinh dist/404.html chống lỗi 404 Safari PWA'
+);
+
+// 25. BUG-38: Hộp thoại Tùy biến Game & Chế độ Vô Tận (GameSetupModal)
+const gameSetupModalPath = path.join(projectRoot, 'src/components/GameSetupModal.tsx');
+const gameSetupContent = fs.existsSync(gameSetupModalPath) ? fs.readFileSync(gameSetupModalPath, 'utf8') : '';
+assert(
+  fs.existsSync(gameSetupModalPath) &&
+  gameSetupContent.includes('Vô tận ∞') &&
+  gameSetupContent.includes('countOptions') &&
+  appContent.includes('GameSetupModal'),
+  'BUG-38',
+  'Có GameSetupModal cho phép tùy chỉnh chế độ học và số lượng câu hỏi (tối thiểu 10 câu, có Vô Tận ∞)'
+);
+
+// 26. BUG-39: Cơ chế Vô Tận không bị chặn trần ở câu 10
+assert(
+  wordMatchContent.includes('isInfinite') &&
+  vocabRotatingContent.includes('isInfinite') &&
+  sentenceRotatingContent.includes('isInfinite') &&
+  wordMatchContent.includes('totalRounds = isInfinite ? 9999 : questionCount'),
+  'BUG-39',
+  'Chế độ Vô Tận hoạt động liên tục (totalRounds = 9999, isInfinite = questionCount >= 9000), không bị chặn trần ở câu 10'
+);
+
+// 27. BUG-40: Tỷ lệ chính xác (%) tính đúng khi bấm Thoát Game sớm ở chế độ Vô Tận
+assert(
+  vocabRotatingContent.includes('isEarlyExit') &&
+  vocabRotatingContent.includes('correctWords.length + wrongWords.length') &&
+  sentenceRotatingContent.includes('isEarlyExit') &&
+  sentenceRotatingContent.includes('correctCount + wrongCount'),
+  'BUG-40',
+  'Độ chính xác % khi Thoát sớm chỉ chia cho tổng số câu thực tế đã trả lời (totalAttempted = correct + wrong)'
+);
+
+// 28. BUG-41.1: Quét sạch Google TTS URLs khỏi curatedWords.ts
+assert(
+  !curatedContent.includes('translate.google.com') &&
+  !curatedContent.includes('client=tw-ob'),
+  'BUG-41.1',
+  'Dọn sạch 100% URL Google TTS cũ khỏi curatedWords.ts, chuyển hướng hoàn toàn sang Youdao stream'
+);
+
+// 29. BUG-41.2: Gói từ khởi tạo 20 từ và Nạp từ +15 từ
+assert(
+  storageContent.includes('addRecommendedWordsBatch(newProfile.id, 20)') &&
+  appContent.includes('handleBatchAddRecommended(15)'),
+  'BUG-41.2',
+  'Tự động cấp 20 từ vựng cho tài khoản bé mới tạo và nâng nút nạp nhanh lên +15 từ'
+);
+
+// 30. BUG-41.3: Hiệu ứng âm thanh tương tác Web Audio API (SFX Synthesizer)
+const sfxPath = path.join(projectRoot, 'src/services/soundEffects.ts');
+const sfxContent = fs.existsSync(sfxPath) ? fs.readFileSync(sfxPath, 'utf8') : '';
+assert(
+  fs.existsSync(sfxPath) &&
+  sfxContent.includes('AudioContext') &&
+  sfxContent.includes('playCorrect') &&
+  sfxContent.includes('playWrong') &&
+  sfxContent.includes('playVictory'),
+  'BUG-41.3',
+  'Bộ tạo âm thanh thuần Web Audio API (Ting, Động viên, Victory Fanfare) 100% offline & an toàn'
+);
+
+// 31. BUG-41.4: Chế độ Luyện Phát Âm Nhại Lại (Echo Voice Recorder 🎙️)
+const echoPath = path.join(projectRoot, 'src/components/EchoVoiceRecorder.tsx');
+const echoContent = fs.existsSync(echoPath) ? fs.readFileSync(echoPath, 'utf8') : '';
+assert(
+  fs.existsSync(echoPath) &&
+  echoContent.includes('MediaRecorder') &&
+  echoContent.includes('getUserMedia') &&
+  echoContent.includes('playWordAudio') &&
+  appContent.includes('EchoVoiceRecorder'),
+  'BUG-41.4',
+  'Component EchoVoiceRecorder thu âm giọng bé và phát lại đối chiếu song song với phát âm người bản xứ'
+);
+
+// 32. BUG-41.5: Bản Đồ Năng Lực 4 Kỹ Năng Thông Minh (Skills Radar)
+const radarPath = path.join(projectRoot, 'src/components/SkillsRadarCard.tsx');
+const radarContent = fs.existsSync(radarPath) ? fs.readFileSync(radarPath, 'utf8') : '';
+assert(
+  fs.existsSync(radarPath) &&
+  radarContent.includes('Luyện Nghe (Listening)') &&
+  radarContent.includes('Mặt Chữ & Nghĩa (Reading)') &&
+  radarContent.includes('Chính Tả (Spelling)') &&
+  radarContent.includes('Mẫu Câu (Grammar)') &&
+  appContent.includes('SkillsRadarCard'),
+  'BUG-41.5',
+  'Bản đồ năng lực đa chiều SkillsRadarCard đánh giá 4 kỹ năng Nghe - Đọc - Chính tả - Mẫu câu'
 );
 
 console.log('\n====================================================');
