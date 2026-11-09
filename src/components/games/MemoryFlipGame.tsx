@@ -22,6 +22,7 @@ interface MemoryCard {
 interface MemoryFlipGameProps {
   words: WordItem[];
   profile: Profile;
+  questionCount?: number;
   onExit: () => void;
   onProfileUpdated: () => void;
 }
@@ -29,21 +30,22 @@ interface MemoryFlipGameProps {
 export const MemoryFlipGame: React.FC<MemoryFlipGameProps> = ({
   words,
   profile,
+  questionCount = 10,
   onExit,
   onProfileUpdated,
 }) => {
   const [cards, setCards] = useState<MemoryCard[]>([]);
   const [selectedCards, setSelectedCards] = useState<MemoryCard[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number>(0);
-  const [totalPairs, setTotalPairs] = useState<number>(4);
+  const [totalPairs, setTotalPairs] = useState<number>(Math.min(questionCount, Math.max(6, words.length)));
   const [turns, setTurns] = useState<number>(0);
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
 
   // Initialize cards
   const initGame = () => {
-    // Pick 4 to 6 random words
-    const pairCount = profile.age <= 8 ? 4 : 6;
+    // Pick pairs based on questionCount (minimum 6-10 pairs if enough words)
+    const pairCount = Math.min(questionCount, words.length);
     setTotalPairs(pairCount);
 
     const shuffledWords = [...words].sort(() => 0.5 - Math.random()).slice(0, pairCount);

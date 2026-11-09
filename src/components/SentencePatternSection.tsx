@@ -8,7 +8,7 @@ interface SentencePatternSectionProps {
   profileId: string;
   userLevel: number;
   dailyGoal: number;
-  onPlaySentenceGame: (mode?: 'all' | 'review' | 'new' | 'mixed') => void;
+  onPlaySentenceGame: (mode?: 'all' | 'review' | 'new' | 'mixed', questionCount?: number) => void;
 }
 
 export const SentencePatternSection: React.FC<SentencePatternSectionProps> = ({

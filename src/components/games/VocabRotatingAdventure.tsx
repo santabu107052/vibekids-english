@@ -11,6 +11,7 @@ interface VocabRotatingAdventureProps {
   allWords: WordItem[];
   profile: Profile;
   mode: 'review' | 'new' | 'mixed';
+  questionCount?: number;
   onExit: () => void;
   onProfileUpdated: () => void;
 }
@@ -43,12 +44,13 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   allWords,
   profile,
   mode,
+  questionCount = 10,
   onExit,
   onProfileUpdated,
 }) => {
   const [wordQueue, setWordQueue] = useState<WordItem[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
-  const totalRounds = Math.min(words.length, Math.max(5, profile.dailyGoal || 5));
+  const totalRounds = Math.min(questionCount, words.length);
 
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
   const [currentVariant, setCurrentVariant] = useState<MiniGameVariant>('memory_flip');

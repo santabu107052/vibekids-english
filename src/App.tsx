@@ -15,6 +15,7 @@ import { ProfileModal } from './components/ProfileModal';
 import { WordManagerModal } from './components/WordManagerModal';
 import { BackupRestoreModal } from './components/BackupRestoreModal';
 import { MonetizationModal } from './components/MonetizationModal';
+import { GameSetupModal, GameLearningMode } from './components/GameSetupModal';
 import { SentencePatternSection } from './components/SentencePatternSection';
 import { AudioButton } from './components/AudioButton';
 
@@ -54,6 +55,22 @@ export const App: React.FC = () => {
   const [gameWordsPool, setGameWordsPool] = useState<WordItem[]>([]);
   const [vocabAdventureMode, setVocabAdventureMode] = useState<'review' | 'new' | 'mixed'>('mixed');
   const [sentenceAdventureMode, setSentenceAdventureMode] = useState<'all' | 'review' | 'new' | 'mixed'>('all');
+  const [activeQuestionCount, setActiveQuestionCount] = useState<number>(10);
+
+  // Game Setup Modal Configuration
+  const [gameSetupConfig, setGameSetupConfig] = useState<{
+    isOpen: boolean;
+    targetGame: GameType;
+    title: string;
+    icon: string;
+    badge?: string;
+    fixedMode?: GameLearningMode;
+  }>({
+    isOpen: false,
+    targetGame: 'vocab_adventure',
+    title: 'Cấu hình trò chơi',
+    icon: '🎮',
+  });
 
   // Modals
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -133,48 +150,83 @@ export const App: React.FC = () => {
     }
   };
 
-  // 1. Launch Vocabulary Rotating Adventure across questions
-  const handleStartVocabMode = (mode: 'review' | 'new' | 'mixed') => {
+  // 1. Triggered when clicking 1 of 3 smart buttons for vocabulary:
+  // Asks how many questions the player wants (minimum 10, or infinite)
+  const openVocabModeSetup = (mode: 'review' | 'new' | 'mixed') => {
     setAlertNotice(null);
-    let pool: WordItem[] = [];
-
     if (mode === 'review') {
       const reviewed = words.filter((w) => (w.masteryLevel || 0) >= 1);
       if (reviewed.length === 0) {
         setAlertNotice('Bé chưa có từ vựng nào đã học. Hãy bắt đầu với "Học Từ Mới" nhé!');
         return;
       }
-      pool = reviewed;
     } else if (mode === 'new') {
       const unlearned = words.filter((w) => (w.masteryLevel || 0) === 0);
       if (unlearned.length === 0) {
         setAlertNotice('Bé đã học hết tất cả từ mới hiện có! Hãy bấm "Ôn Từ" hoặc thêm từ vựng mới nhé!');
         return;
       }
-      pool = unlearned.slice(0, activeProfile.dailyGoal || 5);
+    }
+
+    setGameSetupConfig({
+      isOpen: true,
+      targetGame: 'vocab_adventure',
+      title: mode === 'review' ? 'Ôn Từ Đã Học' : mode === 'new' ? 'Học Từ Mới' : 'Vừa Ôn Vừa Học',
+      icon: mode === 'review' ? '🔄' : mode === 'new' ? '✨' : '🎯',
+      badge: 'Luân phiên 5 game',
+      fixedMode: mode,
+    });
+  };
+
+  // 2. Triggered when clicking 1 of 3 smart buttons for sentence patterns:
+  const openSentenceModeSetup = (mode: 'all' | 'review' | 'new' | 'mixed' = 'all') => {
+    setGameSetupConfig({
+      isOpen: true,
+      targetGame: 'sentence_adventure',
+      title: mode === 'review' ? 'Ôn Mẫu Câu Đã Học' : mode === 'new' ? 'Học Mẫu Câu Mới' : 'Mẫu Câu Vừa Ôn Vừa Học',
+      icon: '💬',
+      badge: 'Luân phiên 3 game',
+      fixedMode: mode === 'all' ? 'mixed' : mode,
+    });
+  };
+
+  // 3. Triggered when clicking any individual game from the Kingdoms:
+  // Asks BOTH: which mode (review / new / mixed) AND how many questions!
+  const openSingleGameSetup = (game: { id: GameType; title: string; icon: string; badge: string }) => {
+    setGameSetupConfig({
+      isOpen: true,
+      targetGame: game.id,
+      title: game.title,
+      icon: game.icon,
+      badge: game.badge,
+      fixedMode: undefined, // Allows user to pick mode!
+    });
+  };
+
+  // 4. Executed when player confirms setup modal:
+  const handleConfirmGameSetup = (selectedMode: GameLearningMode, count: number) => {
+    setActiveQuestionCount(count);
+
+    // Filter words pool based on selected learning mode
+    let pool: WordItem[] = [];
+    if (selectedMode === 'review') {
+      const reviewed = words.filter((w) => (w.masteryLevel || 0) >= 1);
+      pool = reviewed.length > 0 ? reviewed : words;
+    } else if (selectedMode === 'new') {
+      const unlearned = words.filter((w) => (w.masteryLevel || 0) === 0);
+      pool = unlearned.length > 0 ? unlearned : words;
     } else {
       // Mixed mode
-      const unlearned = words.filter((w) => (w.masteryLevel || 0) === 0).slice(0, activeProfile.dailyGoal || 5);
+      const unlearned = words.filter((w) => (w.masteryLevel || 0) === 0);
       const reviewed = words.filter((w) => (w.masteryLevel || 0) >= 1);
       pool = [...unlearned, ...reviewed];
       if (pool.length === 0) pool = words;
     }
 
-    setVocabAdventureMode(mode);
     setGameWordsPool(pool);
-    setActiveGame('vocab_adventure');
-  };
-
-  // 2. Launch Sentence Rotating Adventure across questions
-  const handleStartSentenceMode = (mode: 'all' | 'review' | 'new' | 'mixed' = 'all') => {
-    setSentenceAdventureMode(mode);
-    setActiveGame('sentence_adventure');
-  };
-
-  // 3. Launch Standalone Game directly from Kingdoms
-  const handleLaunchSingleGame = (gameId: GameType) => {
-    setGameWordsPool(words);
-    setActiveGame(gameId);
+    setVocabAdventureMode(selectedMode);
+    setSentenceAdventureMode(selectedMode);
+    setActiveGame(gameSetupConfig.targetGame);
   };
 
   // ========================================================
@@ -191,6 +243,7 @@ export const App: React.FC = () => {
           allWords={words}
           profile={activeProfile}
           mode={vocabAdventureMode}
+          questionCount={activeQuestionCount}
           onExit={() => setActiveGame(null)}
           onProfileUpdated={refreshData}
         />
@@ -204,6 +257,7 @@ export const App: React.FC = () => {
           words={words}
           profile={activeProfile}
           mode={sentenceAdventureMode}
+          questionCount={activeQuestionCount}
           onExit={() => setActiveGame(null)}
           onProfileUpdated={refreshData}
         />
@@ -214,6 +268,7 @@ export const App: React.FC = () => {
     const commonProps = {
       words: effectiveWords,
       profile: activeProfile,
+      questionCount: activeQuestionCount,
       onExit: () => setActiveGame(null),
       onProfileUpdated: refreshData,
     };
@@ -230,7 +285,7 @@ export const App: React.FC = () => {
       case 'spelling_bee':
         return <SpellingBeeGame {...commonProps} />;
       case 'sentence_builder':
-        return <SentenceBuilderGame {...commonProps} mode={sentenceAdventureMode} />;
+        return <SentenceBuilderGame {...commonProps} mode={sentenceAdventureMode} questionCount={activeQuestionCount} />;
       default:
         setActiveGame(null);
     }
@@ -446,7 +501,7 @@ export const App: React.FC = () => {
               {/* Nút 1: Ôn từ đã học */}
               <button
                 type="button"
-                onClick={() => handleStartVocabMode('review')}
+                onClick={() => openVocabModeSetup('review')}
                 className="p-3 rounded-2xl bg-slate-50 hover:bg-amber-50/60 border-2 border-slate-200 hover:border-amber-400 text-slate-800 transition-all flex items-center justify-center gap-2 active:scale-98 group cursor-pointer"
               >
                 <RotateCcw size={16} className="text-amber-500 group-hover:rotate-[-45deg] transition-transform" />
@@ -459,20 +514,20 @@ export const App: React.FC = () => {
               {/* Nút 2: Học từ vựng mới */}
               <button
                 type="button"
-                onClick={() => handleStartVocabMode('new')}
+                onClick={() => openVocabModeSetup('new')}
                 className="p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50/60 border-2 border-slate-200 hover:border-indigo-400 text-slate-800 transition-all flex items-center justify-center gap-2 active:scale-98 group cursor-pointer"
               >
                 <Sparkles size={16} className="text-indigo-600 group-hover:scale-110 transition-transform" />
                 <div className="text-left">
                   <div className="text-xs font-black">Học từ mới</div>
-                  <div className="text-[10px] text-indigo-600 font-bold">Tối đa {activeProfile.dailyGoal} từ/ngày</div>
+                  <div className="text-[10px] text-indigo-600 font-bold">Khám phá từ mới</div>
                 </div>
               </button>
 
               {/* Nút 3: Vừa ôn vừa học */}
               <button
                 type="button"
-                onClick={() => handleStartVocabMode('mixed')}
+                onClick={() => openVocabModeSetup('mixed')}
                 className="p-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white transition-all flex items-center justify-center gap-2 shadow-md shadow-indigo-100 active:scale-98 cursor-pointer"
               >
                 <Target size={16} className="text-amber-300" />
@@ -588,7 +643,7 @@ export const App: React.FC = () => {
           profileId={activeProfile.id}
           userLevel={activeProfile.level}
           dailyGoal={activeProfile.dailyGoal}
-          onPlaySentenceGame={handleStartSentenceMode}
+          onPlaySentenceGame={openSentenceModeSetup}
         />
 
         {/* ======================================================== */}
@@ -613,7 +668,7 @@ export const App: React.FC = () => {
               {vocabGamesList.map((g) => (
                 <div
                   key={g.id}
-                  onClick={() => handleLaunchSingleGame(g.id)}
+                  onClick={() => openSingleGameSetup(g)}
                   className="bg-white rounded-3xl p-5 border-2 border-slate-200/90 hover:border-indigo-400 hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden active:scale-98"
                 >
                   <div>
@@ -664,7 +719,7 @@ export const App: React.FC = () => {
               {sentenceGamesList.map((g) => (
                 <div
                   key={g.id}
-                  onClick={() => handleLaunchSingleGame(g.id)}
+                  onClick={() => openSingleGameSetup(g)}
                   className="bg-white rounded-3xl p-5 border-2 border-slate-200/90 hover:border-purple-400 hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden active:scale-98"
                 >
                   <div>
@@ -751,6 +806,20 @@ export const App: React.FC = () => {
         onRewardReceived={() => {
           refreshData();
         }}
+      />
+
+      {/* Game Setup Modal (Chế độ học + Số lượng câu hỏi >= 10 hoặc Vô tận) */}
+      <GameSetupModal
+        isOpen={gameSetupConfig.isOpen}
+        onClose={() => setGameSetupConfig((prev) => ({ ...prev, isOpen: false }))}
+        title={gameSetupConfig.title}
+        icon={gameSetupConfig.icon}
+        badge={gameSetupConfig.badge}
+        fixedMode={gameSetupConfig.fixedMode}
+        initialCount={activeQuestionCount}
+        reviewedCount={masteredCount + learningCount}
+        newCount={newCount}
+        onConfirm={handleConfirmGameSetup}
       />
     </div>
   );

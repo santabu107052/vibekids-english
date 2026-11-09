@@ -9,6 +9,7 @@ import { AudioButton } from '../AudioButton';
 interface SpellingBeeGameProps {
   words: WordItem[];
   profile: Profile;
+  questionCount?: number;
   onExit: () => void;
   onProfileUpdated: () => void;
 }
@@ -26,12 +27,13 @@ function shuffleList<T>(arr: T[]): T[] {
 export const SpellingBeeGame: React.FC<SpellingBeeGameProps> = ({
   words,
   profile,
+  questionCount = 10,
   onExit,
   onProfileUpdated,
 }) => {
   const [wordQueue, setWordQueue] = useState<WordItem[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
-  const totalRounds = Math.min(6, words.length);
+  const totalRounds = Math.min(questionCount, words.length);
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
   const [input, setInput] = useState('');

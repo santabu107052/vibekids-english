@@ -16,6 +16,7 @@ interface SentenceRotatingAdventureProps {
   words: WordItem[];
   profile: Profile;
   mode: 'all' | 'review' | 'new' | 'mixed';
+  questionCount?: number;
   onExit: () => void;
   onProfileUpdated: () => void;
 }
@@ -36,12 +37,13 @@ export const SentenceRotatingAdventure: React.FC<SentenceRotatingAdventureProps>
   words,
   profile,
   mode,
+  questionCount = 10,
   onExit,
   onProfileUpdated,
 }) => {
   const [wordQueue, setWordQueue] = useState<WordItem[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
-  const totalRounds = Math.min(Math.max(5, words.length), Math.max(5, profile.dailyGoal || 5));
+  const totalRounds = Math.min(questionCount, Math.max(10, words.length));
 
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
   const [currentSentence, setCurrentSentence] = useState<SentenceItem | null>(null);

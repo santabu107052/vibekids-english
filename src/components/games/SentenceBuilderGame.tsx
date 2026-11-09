@@ -13,6 +13,7 @@ interface SentenceBuilderProps {
   onExit: () => void;
   onProfileUpdated: () => void;
   mode?: 'all' | 'review' | 'new' | 'mixed';
+  questionCount?: number;
 }
 
 // Fisher-Yates Shuffle
@@ -35,10 +36,12 @@ export const SentenceBuilderGame: React.FC<SentenceBuilderProps> = ({
   profile,
   onExit,
   onProfileUpdated,
+  mode = 'all',
+  questionCount = 10,
 }) => {
   const [wordQueue, setWordQueue] = useState<WordItem[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
-  const totalRounds = Math.min(6, words.length);
+  const totalRounds = Math.min(questionCount, Math.max(10, words.length));
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
   
   // Stable sentence pair for current round

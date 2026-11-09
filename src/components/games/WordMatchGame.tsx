@@ -10,6 +10,7 @@ import { Check, X, Sparkles } from 'lucide-react';
 interface WordMatchGameProps {
   words: WordItem[];
   profile: Profile;
+  questionCount?: number;
   onExit: () => void;
   onProfileUpdated: () => void;
 }
@@ -27,12 +28,13 @@ function shuffleList<T>(arr: T[]): T[] {
 export const WordMatchGame: React.FC<WordMatchGameProps> = ({
   words,
   profile,
+  questionCount = 10,
   onExit,
   onProfileUpdated,
 }) => {
   const [wordQueue, setWordQueue] = useState<WordItem[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
-  const totalRounds = Math.min(8, words.length);
+  const totalRounds = Math.min(questionCount, words.length);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
