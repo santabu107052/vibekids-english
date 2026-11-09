@@ -257,11 +257,11 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     handleAnswerSubmit(typingInput.trim().toLowerCase() === currentWord.word.toLowerCase());
   };
 
-  const finishGame = (lastIsCorrect: boolean) => {
+  const finishGame = (lastIsCorrect: boolean, isEarlyExit = false) => {
     const finalScore = score + (lastIsCorrect ? 20 : 0);
     const finalCorrectCount = correctWords.length + (lastIsCorrect ? 1 : 0);
-    const effectiveTotal = isInfinite ? Math.max(1, currentRound) : totalRounds;
-    const accuracy = Math.round((finalCorrectCount / effectiveTotal) * 100);
+    const totalAttempted = isEarlyExit ? (correctWords.length + wrongWords.length) : (isInfinite ? Math.max(1, currentRound) : totalRounds);
+    const accuracy = totalAttempted > 0 ? Math.min(100, Math.round((finalCorrectCount / totalAttempted) * 100)) : 100;
 
     const stars = accuracy >= 80 ? 3 : accuracy >= 50 ? 2 : 1;
     const xp = finalScore + stars * 10;
@@ -303,8 +303,9 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
 
   const handleExitGame = () => {
     // If playing in infinite mode and user answered at least 1 question, record result and reward!
-    if (isInfinite && currentRound > 1) {
-      finishGame(false);
+    const completedQuestions = correctWords.length + wrongWords.length;
+    if (isInfinite && completedQuestions > 0) {
+      finishGame(false, true);
     } else {
       onExit();
     }

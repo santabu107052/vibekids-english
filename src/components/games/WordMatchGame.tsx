@@ -114,11 +114,11 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
     }, 1200);
   };
 
-  const finishGame = (lastWasCorrect: boolean) => {
+  const finishGame = (lastWasCorrect: boolean, isEarlyExit = false) => {
     const finalScore = score + (lastWasCorrect ? 10 : 0);
-    const totalAnswered = currentRound;
     const correctCount = correctWords.length + (lastWasCorrect ? 1 : 0);
-    const accuracy = Math.round((correctCount / totalAnswered) * 100);
+    const totalAttempted = isEarlyExit ? (correctWords.length + wrongWords.length) : currentRound;
+    const accuracy = totalAttempted > 0 ? Math.min(100, Math.round((correctCount / totalAttempted) * 100)) : 100;
     const stars = accuracy >= 80 ? 3 : accuracy >= 50 ? 2 : 1;
     const xp = stars * 20 + finalScore;
 
@@ -139,8 +139,9 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
   if (!currentWord) return null;
 
   const handleExitGame = () => {
-    if (isInfinite && currentRound > 1) {
-      finishGame(false);
+    const completedQuestions = correctWords.length + wrongWords.length;
+    if (isInfinite && completedQuestions > 0) {
+      finishGame(false, true);
     } else {
       onExit();
     }

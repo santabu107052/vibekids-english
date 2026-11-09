@@ -167,11 +167,11 @@ export const SentenceRotatingAdventure: React.FC<SentenceRotatingAdventureProps>
     }, 1500);
   };
 
-  const finishGame = (lastWasCorrect: boolean) => {
+  const finishGame = (lastWasCorrect: boolean, isEarlyExit = false) => {
     const finalScore = score + (lastWasCorrect ? 25 : 0);
     const finalCorrect = correctCount + (lastWasCorrect ? 1 : 0);
-    const effectiveTotal = isInfinite ? Math.max(1, currentRound) : totalRounds;
-    const accuracy = Math.round((finalCorrect / effectiveTotal) * 100);
+    const totalAttempted = isEarlyExit ? (correctCount + wrongCount) : (isInfinite ? Math.max(1, currentRound) : totalRounds);
+    const accuracy = totalAttempted > 0 ? Math.min(100, Math.round((finalCorrect / totalAttempted) * 100)) : 100;
     const stars = accuracy >= 80 ? 3 : accuracy >= 50 ? 2 : 1;
     const xp = stars * 40 + finalScore;
 
@@ -207,8 +207,9 @@ export const SentenceRotatingAdventure: React.FC<SentenceRotatingAdventureProps>
   const headerInfo = getVariantHeader();
 
   const handleExitGame = () => {
-    if (isInfinite && currentRound > 1) {
-      finishGame(false);
+    const completedQuestions = correctCount + wrongCount;
+    if (isInfinite && completedQuestions > 0) {
+      finishGame(false, true);
     } else {
       onExit();
     }

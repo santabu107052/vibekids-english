@@ -171,11 +171,11 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
     }
   };
 
-  const finishGame = (lastWasCorrect: boolean) => {
+  const finishGame = (lastWasCorrect: boolean, isEarlyExit = false) => {
     const finalScore = score + (lastWasCorrect ? 15 : 0);
     const correctCount = correctWords.length + (lastWasCorrect ? 1 : 0);
-    const effectiveTotal = isInfinite ? Math.max(1, currentRound) : totalRounds;
-    const accuracy = Math.round((correctCount / effectiveTotal) * 100);
+    const totalAttempted = isEarlyExit ? (correctWords.length + wrongWords.length) : (isInfinite ? Math.max(1, currentRound) : totalRounds);
+    const accuracy = totalAttempted > 0 ? Math.min(100, Math.round((correctCount / totalAttempted) * 100)) : 100;
     const stars = accuracy >= 80 ? 3 : accuracy >= 50 ? 2 : 1;
     const xp = stars * 25 + finalScore;
 
@@ -196,8 +196,9 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
   if (!currentWord) return null;
 
   const handleExitGame = () => {
-    if (isInfinite && currentRound > 1) {
-      finishGame(false);
+    const completedQuestions = correctWords.length + wrongWords.length;
+    if (isInfinite && completedQuestions > 0) {
+      finishGame(false, true);
     } else {
       onExit();
     }
