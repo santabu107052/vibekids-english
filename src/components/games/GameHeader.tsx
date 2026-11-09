@@ -48,9 +48,13 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
           </div>
         )}
 
-        {currentRound !== undefined && totalRounds !== undefined && (
-          <span className="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-700 rounded-lg">
-            {currentRound}/{totalRounds}
+        {currentRound !== undefined && (
+          <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg flex items-center gap-1 font-mono">
+            {totalRounds && totalRounds >= 9000 ? (
+              <span>Câu {currentRound}/∞</span>
+            ) : (
+              <span>{currentRound}/{totalRounds || '?'}</span>
+            )}
           </span>
         )}
 

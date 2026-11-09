@@ -32,9 +32,10 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
   onExit,
   onProfileUpdated,
 }) => {
+  const isInfinite = questionCount >= 9000;
   const [wordQueue, setWordQueue] = useState<WordItem[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
-  const totalRounds = Math.min(questionCount, words.length);
+  const totalRounds = isInfinite ? 9999 : questionCount;
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
@@ -70,13 +71,14 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
   const startNewGame = () => {
     if (words.length === 0) return;
     const shuffled = shuffleList(words);
-    setWordQueue(shuffled);
+    const selected = isInfinite ? shuffled : shuffled.slice(0, totalRounds);
+    setWordQueue(selected);
     setScore(0);
     setLives(3);
     setCorrectWords([]);
     setWrongWords([]);
     setGameResult(null);
-    setupRound(1, shuffled);
+    setupRound(1, selected);
   };
 
   useEffect(() => {
@@ -101,8 +103,10 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
     }
 
     setTimeout(() => {
-      if (lives - (isCorrect ? 0 : 1) <= 0 || currentRound >= totalRounds) {
-        // Game Over
+      const isGameOver = lives - (isCorrect ? 0 : 1) <= 0;
+      const isCompleted = !isInfinite && currentRound >= totalRounds;
+
+      if (isGameOver || isCompleted) {
         finishGame(isCorrect);
       } else {
         setupRound(currentRound + 1);
@@ -134,6 +138,14 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
 
   if (!currentWord) return null;
 
+  const handleExitGame = () => {
+    if (isInfinite && currentRound > 1) {
+      finishGame(false);
+    } else {
+      onExit();
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4 animate-in fade-in">
       <GameHeader
@@ -143,7 +155,7 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
         lives={lives}
         currentRound={currentRound}
         totalRounds={totalRounds}
-        onExit={onExit}
+        onExit={handleExitGame}
       />
 
       {/* Target Word Display Card */}

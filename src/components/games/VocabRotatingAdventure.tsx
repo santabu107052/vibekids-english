@@ -48,9 +48,10 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   onExit,
   onProfileUpdated,
 }) => {
+  const isInfinite = questionCount >= 9000;
   const [wordQueue, setWordQueue] = useState<WordItem[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
-  const totalRounds = Math.min(questionCount, words.length);
+  const totalRounds = isInfinite ? 9999 : questionCount;
 
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
   const [currentVariant, setCurrentVariant] = useState<MiniGameVariant>('memory_flip');
@@ -160,7 +161,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   const startNewGame = () => {
     if (words.length === 0) return;
     const shuffled = shuffleList(words);
-    const selected = shuffled.slice(0, totalRounds);
+    const selected = isInfinite ? shuffled : shuffled.slice(0, totalRounds);
     setWordQueue(selected);
     setScore(0);
     setCorrectWords([]);
@@ -188,7 +189,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     }
 
     setTimeout(() => {
-      if (currentRound < totalRounds) {
+      if (isInfinite || currentRound < totalRounds) {
         setupRound(currentRound + 1);
       } else {
         finishGame(isCorrect);
@@ -259,7 +260,8 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   const finishGame = (lastIsCorrect: boolean) => {
     const finalScore = score + (lastIsCorrect ? 20 : 0);
     const finalCorrectCount = correctWords.length + (lastIsCorrect ? 1 : 0);
-    const accuracy = Math.round((finalCorrectCount / totalRounds) * 100);
+    const effectiveTotal = isInfinite ? Math.max(1, currentRound) : totalRounds;
+    const accuracy = Math.round((finalCorrectCount / effectiveTotal) * 100);
 
     const stars = accuracy >= 80 ? 3 : accuracy >= 50 ? 2 : 1;
     const xp = finalScore + stars * 10;
@@ -299,6 +301,15 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
 
   const variantInfo = getVariantTitle();
 
+  const handleExitGame = () => {
+    // If playing in infinite mode and user answered at least 1 question, record result and reward!
+    if (isInfinite && currentRound > 1) {
+      finishGame(false);
+    } else {
+      onExit();
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4 animate-in fade-in">
       <GameHeader
@@ -307,7 +318,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
         score={score}
         currentRound={currentRound}
         totalRounds={totalRounds}
-        onExit={onExit}
+        onExit={handleExitGame}
       />
 
       {/* Dynamic Mini-Game Indicator Banner */}

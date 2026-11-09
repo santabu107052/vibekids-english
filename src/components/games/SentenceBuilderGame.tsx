@@ -39,9 +39,10 @@ export const SentenceBuilderGame: React.FC<SentenceBuilderProps> = ({
   mode = 'all',
   questionCount = 10,
 }) => {
+  const isInfinite = questionCount >= 9000;
   const [wordQueue, setWordQueue] = useState<WordItem[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
-  const totalRounds = Math.min(questionCount, Math.max(10, words.length));
+  const totalRounds = isInfinite ? 9999 : questionCount;
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
   
   // Stable sentence pair for current round
@@ -83,13 +84,14 @@ export const SentenceBuilderGame: React.FC<SentenceBuilderProps> = ({
   const startNewGame = () => {
     if (words.length === 0) return;
     const shuffled = shuffleList(words);
-    setWordQueue(shuffled);
+    const selected = isInfinite ? shuffled : shuffled.slice(0, totalRounds);
+    setWordQueue(selected);
     setScore(0);
     setUsedTemplateIds(new Set()); // Reset ván mới là reset danh sách câu đã dùng
     setCorrectWords([]);
     setWrongWords([]);
     setGameResult(null);
-    setupRound(1, shuffled);
+    setupRound(1, selected);
   };
 
   useEffect(() => {
@@ -132,10 +134,10 @@ export const SentenceBuilderGame: React.FC<SentenceBuilderProps> = ({
       playWordAudio(currentWord.word, currentWord.audioUrl);
 
       setTimeout(() => {
-        if (currentRound >= totalRounds) {
-          finishGame(true);
-        } else {
+        if (isInfinite || currentRound < totalRounds) {
           setupRound(currentRound + 1);
+        } else {
+          finishGame(true);
         }
       }, 1500);
     } else {
@@ -145,17 +147,18 @@ export const SentenceBuilderGame: React.FC<SentenceBuilderProps> = ({
   };
 
   const handleSkipRound = () => {
-    if (currentRound >= totalRounds) {
-      finishGame(false);
-    } else {
+    if (isInfinite || currentRound < totalRounds) {
       setupRound(currentRound + 1);
+    } else {
+      finishGame(false);
     }
   };
 
   const finishGame = (lastWasCorrect: boolean) => {
     const finalScore = score + (lastWasCorrect ? 30 : 0);
     const correctCount = correctWords.length + (lastWasCorrect ? 1 : 0);
-    const accuracy = Math.round((correctCount / totalRounds) * 100);
+    const effectiveTotal = isInfinite ? Math.max(1, currentRound) : totalRounds;
+    const accuracy = Math.round((correctCount / effectiveTotal) * 100);
     const stars = accuracy >= 80 ? 3 : accuracy >= 50 ? 2 : 1;
     const xp = stars * 50 + finalScore;
 
@@ -175,6 +178,14 @@ export const SentenceBuilderGame: React.FC<SentenceBuilderProps> = ({
 
   if (!currentWord || !currentSentence) return null;
 
+  const handleExitGame = () => {
+    if (isInfinite && currentRound > 1) {
+      finishGame(false);
+    } else {
+      onExit();
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4 animate-in fade-in">
       <GameHeader
@@ -183,7 +194,7 @@ export const SentenceBuilderGame: React.FC<SentenceBuilderProps> = ({
         score={score}
         currentRound={currentRound}
         totalRounds={totalRounds}
-        onExit={onExit}
+        onExit={handleExitGame}
       />
 
       {/* Target Vietnamese Prompt Card */}

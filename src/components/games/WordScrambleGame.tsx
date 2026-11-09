@@ -38,9 +38,10 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
   onExit,
   onProfileUpdated,
 }) => {
+  const isInfinite = questionCount >= 9000;
   const [wordQueue, setWordQueue] = useState<WordItem[]>([]);
   const [currentRound, setCurrentRound] = useState(1);
-  const totalRounds = Math.min(questionCount, words.length);
+  const totalRounds = isInfinite ? 9999 : questionCount;
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
   const [availableLetters, setAvailableLetters] = useState<LetterTile[]>([]);
@@ -78,12 +79,13 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
   const startNewGame = () => {
     if (words.length === 0) return;
     const shuffled = shuffleList(words);
-    setWordQueue(shuffled);
+    const selected = isInfinite ? shuffled : shuffled.slice(0, totalRounds);
+    setWordQueue(selected);
     setScore(0);
     setCorrectWords([]);
     setWrongWords([]);
     setGameResult(null);
-    setupRound(1, shuffled);
+    setupRound(1, selected);
   };
 
   useEffect(() => {
@@ -140,10 +142,10 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
       playWordAudio(currentWord.word, currentWord.audioUrl);
 
       setTimeout(() => {
-        if (currentRound >= totalRounds) {
-          finishGame(true);
-        } else {
+        if (isInfinite || currentRound < totalRounds) {
           setupRound(currentRound + 1);
+        } else {
+          finishGame(true);
         }
       }, 1200);
     } else {
@@ -172,7 +174,8 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
   const finishGame = (lastWasCorrect: boolean) => {
     const finalScore = score + (lastWasCorrect ? 15 : 0);
     const correctCount = correctWords.length + (lastWasCorrect ? 1 : 0);
-    const accuracy = Math.round((correctCount / totalRounds) * 100);
+    const effectiveTotal = isInfinite ? Math.max(1, currentRound) : totalRounds;
+    const accuracy = Math.round((correctCount / effectiveTotal) * 100);
     const stars = accuracy >= 80 ? 3 : accuracy >= 50 ? 2 : 1;
     const xp = stars * 25 + finalScore;
 
@@ -192,6 +195,14 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
 
   if (!currentWord) return null;
 
+  const handleExitGame = () => {
+    if (isInfinite && currentRound > 1) {
+      finishGame(false);
+    } else {
+      onExit();
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4 animate-in fade-in">
       <GameHeader
@@ -200,7 +211,7 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
         score={score}
         currentRound={currentRound}
         totalRounds={totalRounds}
-        onExit={onExit}
+        onExit={handleExitGame}
       />
 
       {/* Word Hint Card */}

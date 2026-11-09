@@ -34,18 +34,19 @@ export const MemoryFlipGame: React.FC<MemoryFlipGameProps> = ({
   onExit,
   onProfileUpdated,
 }) => {
+  const isInfinite = questionCount >= 9000;
   const [cards, setCards] = useState<MemoryCard[]>([]);
   const [selectedCards, setSelectedCards] = useState<MemoryCard[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number>(0);
-  const [totalPairs, setTotalPairs] = useState<number>(Math.min(questionCount, Math.max(6, words.length)));
+  const [totalPairs, setTotalPairs] = useState<number>(6);
   const [turns, setTurns] = useState<number>(0);
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
 
   // Initialize cards
   const initGame = () => {
-    // Pick pairs based on questionCount (minimum 6-10 pairs if enough words)
-    const pairCount = Math.min(questionCount, words.length);
+    // For Memory grid, 4 to 6 pairs per screen is visually perfect
+    const pairCount = Math.min(6, words.length);
     setTotalPairs(pairCount);
 
     const shuffledWords = [...words].sort(() => 0.5 - Math.random()).slice(0, pairCount);
@@ -127,7 +128,15 @@ export const MemoryFlipGame: React.FC<MemoryFlipGameProps> = ({
           setMatchedPairs((prev) => {
             const next = prev + 1;
             if (next === totalPairs) {
-              handleGameOver(updatedCards);
+              if (isInfinite) {
+                // In infinite mode, reload another fresh set of cards!
+                setTimeout(() => {
+                  initGame();
+                  setMatchedPairs(0);
+                }, 800);
+              } else {
+                handleGameOver(updatedCards);
+              }
             }
             return next;
           });
@@ -166,6 +175,14 @@ export const MemoryFlipGame: React.FC<MemoryFlipGameProps> = ({
     setGameResult(result);
   };
 
+  const handleExitGame = () => {
+    if (isInfinite && matchedPairs > 0) {
+      handleGameOver(cards);
+    } else {
+      onExit();
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 animate-in fade-in">
       <GameHeader
@@ -173,8 +190,8 @@ export const MemoryFlipGame: React.FC<MemoryFlipGameProps> = ({
         emoji="🃏"
         score={matchedPairs * 10}
         currentRound={matchedPairs}
-        totalRounds={totalPairs}
-        onExit={onExit}
+        totalRounds={isInfinite ? 9999 : totalPairs}
+        onExit={handleExitGame}
       />
 
       <div className="mb-4 flex items-center justify-between text-xs text-slate-500 bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs">
