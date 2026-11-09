@@ -36,6 +36,7 @@
 | **BUG-35** | Mở rộng bank & Thiếu Game Lật Thẻ | **Major** | Bank từ hẹp, thiếu game lật thẻ | Bank từ cũ, thiếu cấu trúc 5 mini-game | Mở rộng 275+ từ vựng, tích hợp game Memory Flip | 🟢 **ĐÃ SỬA** |
 | **BUG-36** | Đóng gói Mobile & AdMob | **Enhancement** | Cần đưa lên store, kiếm tiền | Chưa có native layer | Cấu hình Capacitor, tích hợp AdMob, hướng dẫn xuất bản | 🟢 **ĐÃ SỬA** |
 | **BUG-37** | Lỗi 404 khi mở App từ Màn hình chính (PWA Standalone trên iOS Safari) | **Critical (PWA)** | Mở trong Safari bình thường nhưng khi "Thêm vào MH chính" (Add to Home Screen) và bấm mở icon ngoài màn hình thì bị lỗi 404 từ GitHub Pages. | Trong `public/manifest.json`, thuộc tính `start_url: "/"` trỏ thẳng về trang chủ domain gốc `https://santabu107052.github.io/` (thay vì subfolder `/vibekids-english/`), khiến GitHub Pages báo 404 File Not Found. | 1. Chuẩn hóa `start_url: "./"` và `scope: "./"` trong `manifest.json`.<br>2. Chuyển đường dẫn `<link rel="manifest">` sang đường dẫn tương đối an toàn.<br>3. Tạo file `dist/404.html` tự động nhân bản từ `index.html` trong script deploy để luôn điều hướng đúng Single Page App. | 🟢 **ĐÃ SỬA & ĐÃ DEPLOY** |
+| **BUG-38** | Thêm Hộp Thoại Tùy Biến Chế Độ Học & Số Lượng Câu Hỏi (Có chế độ Vô Tận) | **Major (UX / Sư phạm)** | 1. Bấm vào bất kỳ game đơn lẻ nào chưa có bước hỏi chọn chế độ học (Ôn từ / Học mới / Học + Ôn).<br>2. Chưa cho người chơi tự chọn số lượng câu hỏi mỗi phiên (yêu cầu tối thiểu 10 câu hoặc chơi không giới hạn). | 1. Thiết kế component `GameSetupModal.tsx` trực quan và hiện đại.<br>2. Khi bấm 1 trong 3 nút thông minh: Hỏi ngay số lượng câu hỏi (10, 15, 20 hoặc Vô Tận ∞).<br>3. Khi bấm vào 1 game bất kỳ: Hỏi trước Chế độ học ➔ Sau đó chọn Số lượng câu hỏi (tối thiểu 10 câu hoặc Vô tận ∞).<br>4. Đồng bộ vào toàn bộ 6 game đơn lẻ và 2 chế độ phiêu lưu luân phiên. | 🟢 **ĐÃ HOÀN TẤT & ĐÃ DEPLOY** |
 
 ## 2. Quy Trình Kiểm Thử Hồi Quy (Regression Testing Checklist)
 - [x] **TC-01** - **TC-26**: Đạt.
@@ -46,3 +47,4 @@
 - [x] **TC-35**: Game luân phiên đủ 5 trò chơi (Memory Flip ➔ Bubble Match ➔ Sound Detective ➔ Scramble ➔ Spelling).
 - [x] **TC-36**: Đóng gói Mobile & AdMob: Đã tích hợp sẵn sàng, cấu hình chuẩn an toàn trẻ em (COPPA). Hướng dẫn xuất file native tại `MOBILE-PUBLISH-GUIDE.md`.
 - [x] **TC-37**: Thêm vào Màn hình chính (Add to Home Screen) mở app tràn viền mượt mà không còn bị lỗi 404.
+- [x] **TC-38**: Popup tùy chỉnh xuất hiện mượt mà khi bấm bất kỳ game nào (hỏi chế độ + số câu hỏi) hoặc khi bấm 3 nút (hỏi số câu hỏi). Có tùy chọn "Vô tận ∞" chơi thỏa thích.
