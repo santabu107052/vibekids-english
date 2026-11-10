@@ -6,6 +6,7 @@ import { useModalManager } from './hooks/useModalManager';
 import { Navbar } from './components/Navbar';
 import { GameRouter } from './components/router/GameRouter';
 import { HeroSection } from './components/dashboard/HeroSection';
+import { SkillsRadarCard } from './components/SkillsRadarCard';
 import { VocabStatsSection } from './components/dashboard/VocabStatsSection';
 import { WordNotebookSection } from './components/dashboard/WordNotebookSection';
 import { GameKingdomsSection } from './components/dashboard/GameKingdomsSection';
@@ -119,7 +120,15 @@ export const App: React.FC = () => {
         {/* Hero Greeting & Daily Target */}
         <HeroSection profile={activeProfile} todayPracticedCount={todayPracticedCount} />
 
-        {/* Section 1: Vocabulary Progress & Radar Skills */}
+        {/* Bản Đồ 3 Kỹ Năng Thông Minh Của Bé (Đặt ngay trên khối Tiến độ từ vựng) */}
+        <SkillsRadarCard
+          listeningScore={listeningScore}
+          readingScore={readingScore}
+          spellingScore={spellingScore}
+          totalPracticed={totalAnswers}
+        />
+
+        {/* Section 1: Vocabulary Progress */}
         <VocabStatsSection
           wordsCount={words.length}
           masteredCount={masteredCount}
@@ -131,11 +140,6 @@ export const App: React.FC = () => {
           onOpenWordManager={() => setIsWordManagerOpen(true)}
           alertNotice={alertNotice}
           onDismissAlert={() => setAlertNotice(null)}
-          listeningScore={listeningScore}
-          readingScore={readingScore}
-          spellingScore={spellingScore}
-          sentenceScore={sentenceScore}
-          totalAnswers={totalAnswers}
         />
 
         {/* Word Notebook Section (List Preview & Actions) */}
@@ -197,6 +201,8 @@ export const App: React.FC = () => {
               phonetic={echoWord.phonetic}
               meaningVi={echoWord.meaningVi}
               audioUrl={echoWord.audioUrl}
+              profile={activeProfile}
+              onProfileUpdated={refreshData}
               onClose={() => setEchoWord(null)}
             />
           </div>

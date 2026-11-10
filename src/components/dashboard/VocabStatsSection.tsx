@@ -1,6 +1,5 @@
 import React from 'react';
 import { BookOpen, PlusCircle, Zap, RotateCcw, Sparkles, Target } from 'lucide-react';
-import { SkillsRadarCard } from '../SkillsRadarCard';
 
 export interface VocabStatsSectionProps {
   wordsCount: number;
@@ -13,11 +12,6 @@ export interface VocabStatsSectionProps {
   onOpenWordManager: () => void;
   alertNotice: string | null;
   onDismissAlert: () => void;
-  listeningScore: number;
-  readingScore: number;
-  spellingScore: number;
-  sentenceScore?: number;
-  totalAnswers: number;
 }
 
 export const VocabStatsSection: React.FC<VocabStatsSectionProps> = ({
@@ -31,11 +25,6 @@ export const VocabStatsSection: React.FC<VocabStatsSectionProps> = ({
   onOpenWordManager,
   alertNotice,
   onDismissAlert,
-  listeningScore,
-  readingScore,
-  spellingScore,
-  sentenceScore,
-  totalAnswers,
 }) => {
   return (
     <section className="space-y-4">
@@ -189,15 +178,6 @@ export const VocabStatsSection: React.FC<VocabStatsSectionProps> = ({
           </button>
         </div>
       )}
-
-      {/* Bản Đồ 4 Kỹ Năng Thông Minh Của Bé */}
-      <SkillsRadarCard
-        listeningScore={listeningScore}
-        readingScore={readingScore}
-        spellingScore={spellingScore}
-        sentenceScore={sentenceScore}
-        totalPracticed={totalAnswers}
-      />
     </section>
   );
 };

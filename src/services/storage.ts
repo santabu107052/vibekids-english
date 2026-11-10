@@ -557,10 +557,25 @@ export function recordGameResult(profileId: string, result: GameScoreResult): Pr
 }
 
 /**
+ * Thưởng thêm sao cho Profile của bé (ví dụ sau khi đạt điểm phát âm xuất sắc)
+ */
+export function addStarsToProfile(profileId: string, starsToAdd: number): Profile | null {
+  const profiles = getProfiles();
+  const profile = profiles.find(p => p.id === profileId);
+  if (!profile) return null;
+  profile.stars += starsToAdd;
+  if (profile.stars >= 50 && !profile.badges.includes('Thợ Săn Ngôi Sao')) {
+    profile.badges.push('Thợ Săn Ngôi Sao');
+  }
+  saveProfiles(profiles);
+  return profile;
+}
+
+/**
  * Export all data to JSON string for backup
  */
 export function exportAllData(): string {
-  const backup: Record<string, any> = {};
+  const backup: Record<string, string | null> = {};
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key && key.startsWith('vibekids_')) {
