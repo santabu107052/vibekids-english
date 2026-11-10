@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WordItem, Profile, GameScoreResult } from '../../types';
-import { recordGameResult } from '../../services/storage';
+import { recordGameResult, updateWordProgress } from '../../services/storage';
 import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
@@ -140,6 +140,7 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
       setScore((prev) => prev + 15);
       setCorrectWords((prev) => [...prev, currentWord.word]);
       playWordAudio(currentWord.word, currentWord.audioUrl);
+      updateWordProgress(profile.id, currentWord.id, currentWord.word, true, 'spelling');
 
       setTimeout(() => {
         if (isInfinite || currentRound < totalRounds) {
@@ -151,6 +152,7 @@ export const WordScrambleGame: React.FC<WordScrambleGameProps> = ({
     } else {
       setStatus('wrong');
       setWrongWords((prev) => [...prev, currentWord.word]);
+      updateWordProgress(profile.id, currentWord.id, currentWord.word, false, 'spelling');
 
       setTimeout(() => {
         // Clear placed letters and reset status

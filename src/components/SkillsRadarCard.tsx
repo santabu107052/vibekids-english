@@ -1,11 +1,11 @@
 import React from 'react';
-import { Ear, Eye, PenTool, Layers, TrendingUp } from 'lucide-react';
+import { Ear, Eye, PenTool, TrendingUp } from 'lucide-react';
 
 interface SkillsRadarCardProps {
   listeningScore: number;   // 0 - 100
   readingScore: number;     // 0 - 100
   spellingScore: number;    // 0 - 100
-  sentenceScore: number;    // 0 - 100
+  sentenceScore?: number;   // Tuỳ chọn (đã ẩn theo chỉ đạo người dùng)
   totalPracticed: number;
 }
 
@@ -13,7 +13,6 @@ export const SkillsRadarCard: React.FC<SkillsRadarCardProps> = ({
   listeningScore,
   readingScore,
   spellingScore,
-  sentenceScore,
   totalPracticed,
 }) => {
   const skills = [
@@ -44,19 +43,10 @@ export const SkillsRadarCard: React.FC<SkillsRadarCardProps> = ({
       bgColor: 'bg-rose-50',
       desc: 'Viết từ chính xác từng chữ cái',
     },
-    {
-      name: 'Mẫu Câu (Grammar)',
-      icon: <Layers size={16} className="text-amber-600" />,
-      score: Math.min(100, Math.max(10, sentenceScore)),
-      color: 'bg-amber-500',
-      textColor: 'text-amber-700',
-      bgColor: 'bg-amber-50',
-      desc: 'Ngữ pháp thực chiến giao tiếp',
-    },
   ];
 
   const overallScore = Math.round(
-    (skills[0].score + skills[1].score + skills[2].score + skills[3].score) / 4
+    (skills[0].score + skills[1].score + skills[2].score) / 3
   );
 
   return (
@@ -67,7 +57,7 @@ export const SkillsRadarCard: React.FC<SkillsRadarCardProps> = ({
             <TrendingUp size={18} />
           </div>
           <div>
-            <h3 className="text-base font-black text-slate-800">Bản Đồ Năng Lực 4 Kỹ Năng Của Bé</h3>
+            <h3 className="text-base font-black text-slate-800">Bản Đồ Năng Lực 3 Kỹ Năng Của Bé</h3>
             <p className="text-xs text-slate-400">Đánh giá đa chiều dựa trên lịch sử luyện tập</p>
           </div>
         </div>
@@ -80,8 +70,8 @@ export const SkillsRadarCard: React.FC<SkillsRadarCardProps> = ({
         </div>
       </div>
 
-      {/* 4 Skill Progress Bars */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+      {/* 3 Skill Progress Bars */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
         {skills.map((skill, idx) => (
           <div
             key={idx}
@@ -110,7 +100,7 @@ export const SkillsRadarCard: React.FC<SkillsRadarCardProps> = ({
 
       {/* Helpful pedagogical advice */}
       <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 text-[11px] text-slate-600 flex items-center justify-between">
-        <span>💡 <strong>Gợi ý sư phạm:</strong> Hãy khuyến khích bé chơi luân phiên cả 2 Vương quốc để phát triển đồng đều 4 kỹ năng.</span>
+        <span>💡 <strong>Gợi ý sư phạm:</strong> Bé đạt thành thạo khi trả lời đúng từ 5 lần trở lên ở cả 3 kỹ năng Nghe, Đọc và Chính tả.</span>
         <span className="text-indigo-600 font-bold shrink-0 ml-2">Đã luyện {totalPracticed} lượt</span>
       </div>
     </div>

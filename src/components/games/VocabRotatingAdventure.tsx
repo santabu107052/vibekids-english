@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WordItem, Profile, GameScoreResult } from '../../types';
+import { WordItem, Profile, GameScoreResult, SkillType } from '../../types';
 import { recordGameResult, updateWordProgress } from '../../services/storage';
 import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
@@ -18,6 +18,12 @@ interface VocabRotatingAdventureProps {
 }
 
 export type MiniGameVariant = 'memory_flip' | 'bubble_match' | 'sound_detective' | 'scramble' | 'spelling';
+
+const getSkillForVariant = (variant: MiniGameVariant): SkillType => {
+  if (variant === 'sound_detective') return 'listening';
+  if (variant === 'scramble' || variant === 'spelling') return 'spelling';
+  return 'reading';
+};
 
 interface MiniFlipCard {
   id: string;
@@ -77,6 +83,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   // Results
   const [correctWords, setCorrectWords] = useState<string[]>([]);
   const [wrongWords, setWrongWords] = useState<string[]>([]);
+  const [roundHasError, setRoundHasError] = useState(false);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
 
   // 5 Mini-Games rotating across questions
@@ -151,6 +158,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     setTypingInput('');
     setSelectedOption(null);
     setIsAnswered(false);
+    setRoundHasError(false);
     setCurrentRound(roundNum);
 
     // Audio cue
@@ -178,26 +186,48 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   // Answer handler
   const handleAnswerSubmit = (isCorrect: boolean) => {
     if (isAnswered || !currentWord) return;
-    setIsAnswered(true);
+
+    const skill = getSkillForVariant(currentVariant);
 
     if (isCorrect) {
+      setIsAnswered(true);
       soundManager.playCorrect();
-      setScore((prev) => prev + 20);
+      setScore((prev) => prev + (roundHasError ? 10 : 20));
       setCorrectWords((prev) => [...prev, currentWord.word]);
-      updateWordProgress(profile.id, currentWord.id, currentWord.word, true);
+      updateWordProgress(profile.id, currentWord.id, currentWord.word, true, skill);
+
+      setTimeout(() => {
+        if (isInfinite || currentRound < totalRounds) {
+          setupRound(currentRound + 1);
+        } else {
+          finishGame(isCorrect);
+        }
+      }, 1200);
     } else {
+      // Khi bé trả lời sai, không cho phép qua câu sau. Ghi nhận câu đó là trả lời sai, nhưng chỉ cho qua câu khi bé chọn/gõ được đáp án đúng.
+      setRoundHasError(true);
       soundManager.playWrong();
       setWrongWords((prev) => [...prev, currentWord.word]);
-      updateWordProgress(profile.id, currentWord.id, currentWord.word, false);
-    }
+      updateWordProgress(profile.id, currentWord.id, currentWord.word, false, skill);
 
-    setTimeout(() => {
-      if (isInfinite || currentRound < totalRounds) {
-        setupRound(currentRound + 1);
+      if (currentVariant === 'scramble') {
+        setTimeout(() => {
+          const chars = currentWord.word.toLowerCase().split('');
+          const tiles = chars.map((ch, idx) => ({ id: `${ch}-${idx}-${Math.random()}`, char: ch.toUpperCase(), used: false }));
+          setScrambleLetters(shuffleList(tiles));
+          setPlacedLetters([]);
+        }, 800);
+      } else if (currentVariant === 'spelling') {
+        setTimeout(() => {
+          setTypingInput('');
+        }, 800);
       } else {
-        finishGame(isCorrect);
+        setTimeout(() => {
+          setSelectedOption(null);
+          setIsAnswered(false);
+        }, 800);
       }
-    }, 1200);
+    }
   };
 
   // Memory card click handler

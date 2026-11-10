@@ -1,4 +1,4 @@
-import { Profile, WordItem, AgeGroup, GameScoreResult } from '../types';
+import { Profile, WordItem, AgeGroup, GameScoreResult, SkillType } from '../types';
 import { CURATED_WORDS } from '../data/curatedWords';
 import { RECOMMENDED_VOCABULARY_BANK } from '../data/recommendedWords';
 
@@ -194,11 +194,14 @@ export function deleteCustomWord(profileId: string, wordId: string): void {
 /**
  * Word progress tracking
  */
-interface WordProgressData {
+export interface WordProgressData {
   masteryLevel: number; // 0 to 5
   correctCount: number;
   incorrectCount: number;
   lastReviewed: string;
+  listeningCorrect?: number;
+  readingCorrect?: number;
+  spellingCorrect?: number;
 }
 
 export function getWordProgressMap(profileId: string): Record<string, WordProgressData> {
@@ -240,6 +243,9 @@ export function getWordsForProfile(profileId: string): WordItem[] {
       result.masteryLevel = progress.masteryLevel;
       result.correctCount = progress.correctCount;
       result.incorrectCount = progress.incorrectCount;
+      result.listeningCorrect = progress.listeningCorrect || 0;
+      result.readingCorrect = progress.readingCorrect || 0;
+      result.spellingCorrect = progress.spellingCorrect || 0;
     }
     return result;
   });
@@ -320,30 +326,111 @@ export function addRecommendedWordsBatch(
   return { added: toAdd, remaining: remainingAfter };
 }
 
+export function getSkillForGame(gameType: string): SkillType {
+  switch (gameType) {
+    case 'sound_detective':
+      return 'listening';
+    case 'word_scramble':
+    case 'spelling_bee':
+      return 'spelling';
+    case 'memory_flip':
+    case 'word_match':
+    default:
+      return 'reading';
+  }
+}
+
+/**
+ * Tính toán masteryLevel theo quy định sư phạm:
+ * - 1 từ được cho là thành thạo (masteryLevel = 5) khi bé trả lời đúng >= 5 lần trong MỖI kỹ năng
+ *   (Nghe, Đọc mặt chữ & nghĩa, Chính tả) (cả 3 kỹ năng đều >= 5 lần đúng).
+ * - Nếu bé trả lời sai 1 lần ở bất kỳ kỹ năng nào, lập tức chuyển từ thành thạo sang đang luyện tập.
+ */
+export function calculateWordMasteryLevel(
+  listeningCorrect: number = 0,
+  readingCorrect: number = 0,
+  spellingCorrect: number = 0,
+  hasPracticed: boolean = false
+): number {
+  if (listeningCorrect >= 5 && readingCorrect >= 5 && spellingCorrect >= 5) {
+    return 5; // Thành thạo
+  }
+  if (!hasPracticed && listeningCorrect === 0 && readingCorrect === 0 && spellingCorrect === 0) {
+    return 0; // Từ mới chưa học
+  }
+  let skillsMet = 0;
+  if (listeningCorrect >= 5) skillsMet++;
+  if (readingCorrect >= 5) skillsMet++;
+  if (spellingCorrect >= 5) skillsMet++;
+
+  if (skillsMet === 2) return 3;
+  if (skillsMet === 1) return 2;
+  return 1;
+}
+
 /**
  * Update word mastery after playing games
  */
-export function updateWordProgress(profileId: string, wordId: string, wordStr: string, isCorrect: boolean): void {
+export function updateWordProgress(
+  profileId: string,
+  wordId: string,
+  wordStr: string,
+  isCorrect: boolean,
+  skill: SkillType = 'reading'
+): void {
   const map = getWordProgressMap(profileId);
   const key = wordId || wordStr.toLowerCase();
-  const current = map[key] || {
+  const current: WordProgressData = map[key] || {
     masteryLevel: 0,
     correctCount: 0,
     incorrectCount: 0,
     lastReviewed: new Date().toISOString(),
+    listeningCorrect: 0,
+    readingCorrect: 0,
+    spellingCorrect: 0,
   };
+
+  let listening = current.listeningCorrect || 0;
+  let reading = current.readingCorrect || 0;
+  let spelling = current.spellingCorrect || 0;
+
+  // Hỗ trợ tương thích ngược cho dữ liệu cũ nếu đã đạt mốc thành thạo trước đó
+  if (current.masteryLevel >= 4 && listening === 0 && reading === 0 && spelling === 0) {
+    listening = 5;
+    reading = 5;
+    spelling = 5;
+  }
 
   if (isCorrect) {
     current.correctCount += 1;
-    if (current.masteryLevel < 5) {
-      current.masteryLevel += 1;
-    }
+    if (skill === 'listening') listening += 1;
+    else if (skill === 'spelling') spelling += 1;
+    else reading += 1;
+
+    current.listeningCorrect = listening;
+    current.readingCorrect = reading;
+    current.spellingCorrect = spelling;
+
+    current.masteryLevel = calculateWordMasteryLevel(listening, reading, spelling, true);
   } else {
     current.incorrectCount += 1;
-    if (current.masteryLevel > 0) {
-      current.masteryLevel -= 1;
+    // QUY TẮC: Nếu bé trả lời sai 1 lần ở bất kỳ kỹ năng nào, lập tức chuyển từ thành thạo sang đang luyện tập.
+    // Hạ số lần đúng của kỹ năng này xuống dưới 5
+    if (skill === 'listening') listening = Math.max(0, Math.min(4, listening - 1));
+    else if (skill === 'spelling') spelling = Math.max(0, Math.min(4, spelling - 1));
+    else reading = Math.max(0, Math.min(4, reading - 1));
+
+    current.listeningCorrect = listening;
+    current.readingCorrect = reading;
+    current.spellingCorrect = spelling;
+
+    // Chắc chắn không còn đủ 3 kỹ năng >= 5 -> chuyển sang đang luyện tập (1, 2 hoặc 3)
+    current.masteryLevel = calculateWordMasteryLevel(listening, reading, spelling, true);
+    if (current.masteryLevel >= 4) {
+      current.masteryLevel = 3;
     }
   }
+
   current.lastReviewed = new Date().toISOString();
   map[key] = current;
   saveWordProgressMap(profileId, map);
@@ -393,34 +480,62 @@ export function recordGameResult(profileId: string, result: GameScoreResult): Pr
   // Update mastery for each word in a single I/O pass (batch update)
   const map = getWordProgressMap(profileId);
   const nowIso = new Date().toISOString();
+  const skill = getSkillForGame(result.gameType);
 
   for (const w of result.correctWords) {
     const key = w.toLowerCase();
-    const current = map[key] || {
+    const current: WordProgressData = map[key] || {
       masteryLevel: 0,
       correctCount: 0,
       incorrectCount: 0,
       lastReviewed: nowIso,
+      listeningCorrect: 0,
+      readingCorrect: 0,
+      spellingCorrect: 0,
     };
     current.correctCount += 1;
-    if (current.masteryLevel < 5) {
-      current.masteryLevel += 1;
-    }
+    if (skill === 'listening') current.listeningCorrect = (current.listeningCorrect || 0) + 1;
+    else if (skill === 'spelling') current.spellingCorrect = (current.spellingCorrect || 0) + 1;
+    else current.readingCorrect = (current.readingCorrect || 0) + 1;
+
+    current.masteryLevel = calculateWordMasteryLevel(
+      current.listeningCorrect || 0,
+      current.readingCorrect || 0,
+      current.spellingCorrect || 0,
+      true
+    );
     current.lastReviewed = nowIso;
     map[key] = current;
   }
 
   for (const w of result.wrongWords) {
     const key = w.toLowerCase();
-    const current = map[key] || {
+    const current: WordProgressData = map[key] || {
       masteryLevel: 0,
       correctCount: 0,
       incorrectCount: 0,
       lastReviewed: nowIso,
+      listeningCorrect: 0,
+      readingCorrect: 0,
+      spellingCorrect: 0,
     };
     current.incorrectCount += 1;
-    if (current.masteryLevel > 0) {
-      current.masteryLevel -= 1;
+    if (skill === 'listening') {
+      current.listeningCorrect = Math.max(0, Math.min(4, (current.listeningCorrect || 0) - 1));
+    } else if (skill === 'spelling') {
+      current.spellingCorrect = Math.max(0, Math.min(4, (current.spellingCorrect || 0) - 1));
+    } else {
+      current.readingCorrect = Math.max(0, Math.min(4, (current.readingCorrect || 0) - 1));
+    }
+
+    current.masteryLevel = calculateWordMasteryLevel(
+      current.listeningCorrect || 0,
+      current.readingCorrect || 0,
+      current.spellingCorrect || 0,
+      true
+    );
+    if (current.masteryLevel >= 4) {
+      current.masteryLevel = 3;
     }
     current.lastReviewed = nowIso;
     map[key] = current;

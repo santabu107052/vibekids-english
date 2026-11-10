@@ -316,7 +316,7 @@ assert(
   'Component EchoVoiceRecorder thu âm giọng bé và phát lại đối chiếu song song với phát âm người bản xứ'
 );
 
-// 32. BUG-41.5: Bản Đồ Năng Lực 4 Kỹ Năng Thông Minh (Skills Radar)
+// 32. BUG-41.5: Bản Đồ Năng Lực 3 Kỹ Năng Thông Minh (Skills Radar)
 const radarPath = path.join(projectRoot, 'src/components/SkillsRadarCard.tsx');
 const radarContent = fs.existsSync(radarPath) ? fs.readFileSync(radarPath, 'utf8') : '';
 assert(
@@ -324,10 +324,10 @@ assert(
   radarContent.includes('Luyện Nghe (Listening)') &&
   radarContent.includes('Mặt Chữ & Nghĩa (Reading)') &&
   radarContent.includes('Chính Tả (Spelling)') &&
-  radarContent.includes('Mẫu Câu (Grammar)') &&
+  !radarContent.includes('Mẫu Câu (Grammar)') &&
   appContent.includes('SkillsRadarCard'),
   'BUG-41.5',
-  'Bản đồ năng lực đa chiều SkillsRadarCard đánh giá 4 kỹ năng Nghe - Đọc - Chính tả - Mẫu câu'
+  'Bản đồ năng lực chuẩn hóa 3 kỹ năng Nghe - Đọc - Chính tả (đã loại bỏ Mẫu câu theo chỉ đạo)'
 );
 
 console.log('\n====================================================');

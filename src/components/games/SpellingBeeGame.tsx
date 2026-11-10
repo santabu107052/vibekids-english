@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WordItem, Profile, GameScoreResult } from '../../types';
-import { recordGameResult } from '../../services/storage';
+import { recordGameResult, updateWordProgress } from '../../services/storage';
 import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
@@ -80,6 +80,7 @@ export const SpellingBeeGame: React.FC<SpellingBeeGameProps> = ({
       setScore((prev) => prev + 20);
       setCorrectWords((prev) => [...prev, currentWord.word]);
       playWordAudio(currentWord.word, currentWord.audioUrl);
+      updateWordProgress(profile.id, currentWord.id, currentWord.word, true, 'spelling');
 
       setTimeout(() => {
         if (isInfinite || currentRound < totalRounds) {
@@ -91,6 +92,7 @@ export const SpellingBeeGame: React.FC<SpellingBeeGameProps> = ({
     } else {
       setStatus('wrong');
       setWrongWords((prev) => [...prev, currentWord.word]);
+      updateWordProgress(profile.id, currentWord.id, currentWord.word, false, 'spelling');
       setTimeout(() => {
         setStatus('playing');
         setInput('');

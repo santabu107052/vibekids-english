@@ -16,7 +16,7 @@ export interface VocabStatsSectionProps {
   listeningScore: number;
   readingScore: number;
   spellingScore: number;
-  sentenceScore: number;
+  sentenceScore?: number;
   totalAnswers: number;
 }
 

@@ -8,7 +8,6 @@ import { GameRouter } from './components/router/GameRouter';
 import { HeroSection } from './components/dashboard/HeroSection';
 import { VocabStatsSection } from './components/dashboard/VocabStatsSection';
 import { WordNotebookSection } from './components/dashboard/WordNotebookSection';
-import { SentencePatternSection } from './components/SentencePatternSection';
 import { GameKingdomsSection } from './components/dashboard/GameKingdomsSection';
 import { BadgesSection } from './components/dashboard/BadgesSection';
 
@@ -114,7 +113,6 @@ export const App: React.FC = () => {
         onOpenProfiles={() => setIsProfileModalOpen(true)}
         onOpenWordManager={() => setIsWordManagerOpen(true)}
         onOpenBackup={() => setIsBackupOpen(true)}
-        onOpenMonetization={() => setIsMonetizationOpen(true)}
       />
 
       <main className="max-w-6xl mx-auto px-4 pt-6 space-y-7">
@@ -152,13 +150,7 @@ export const App: React.FC = () => {
           onDeleteWord={(wordId) => handleDeleteWord(wordId)}
         />
 
-        {/* Section 2: Sentence Patterns Communication Section */}
-        <SentencePatternSection
-          profileId={activeProfile.id}
-          userLevel={activeProfile.level}
-          dailyGoal={activeProfile.dailyGoal}
-          onPlaySentenceGame={openSentenceModeSetup}
-        />
+        {/* Section 2: Mẫu câu giao tiếp (Tạm thời ẩn hoàn toàn theo chỉ đạo người dùng, chỉ giữ phần từ vựng) */}
 
         {/* Section 3: Game Kingdoms */}
         <GameKingdomsSection onSelectGame={openSingleGameSetup} />

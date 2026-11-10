@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { WordItem, Profile, GameScoreResult } from '../../types';
-import { recordGameResult } from '../../services/storage';
+import { recordGameResult, updateWordProgress } from '../../services/storage';
 import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
 import { AudioButton } from '../AudioButton';
 import { Volume2 } from 'lucide-react';
+import { soundManager } from '../../services/soundEffects';
 
 interface SoundDetectiveGameProps {
   words: WordItem[];
@@ -43,6 +44,7 @@ export const SoundDetectiveGame: React.FC<SoundDetectiveGameProps> = ({
   const [answeredCorrect, setAnsweredCorrect] = useState<boolean | null>(null);
   const [correctWords, setCorrectWords] = useState<string[]>([]);
   const [wrongWords, setWrongWords] = useState<string[]>([]);
+  const [roundHasError, setRoundHasError] = useState(false);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
 
   const setupRound = (roundNum: number, queue: WordItem[] = wordQueue) => {
@@ -60,6 +62,7 @@ export const SoundDetectiveGame: React.FC<SoundDetectiveGameProps> = ({
 
     setIsAnswered(false);
     setAnsweredCorrect(null);
+    setRoundHasError(false);
     setCurrentRound(roundNum);
 
     // Auto play mystery audio
@@ -93,25 +96,36 @@ export const SoundDetectiveGame: React.FC<SoundDetectiveGameProps> = ({
   const handleSelect = (option: WordItem) => {
     if (isAnswered || !targetWord) return;
 
-    setIsAnswered(true);
     const isCorrect = option.id === targetWord.id;
-    setAnsweredCorrect(isCorrect);
 
     if (isCorrect) {
-      setScore((prev) => prev + 15);
+      setIsAnswered(true);
+      setAnsweredCorrect(true);
+      soundManager.playCorrect();
+      setScore((prev) => prev + (roundHasError ? 8 : 15));
       setCorrectWords((prev) => [...prev, targetWord.word]);
       playWordAudio(targetWord.word, targetWord.audioUrl);
-    } else {
-      setWrongWords((prev) => [...prev, targetWord.word]);
-    }
+      updateWordProgress(profile.id, targetWord.id, targetWord.word, true, 'listening');
 
-    setTimeout(() => {
-      if (isInfinite || currentRound < totalRounds) {
-        setupRound(currentRound + 1);
-      } else {
-        finishGame(isCorrect);
-      }
-    }, 1200);
+      setTimeout(() => {
+        if (isInfinite || currentRound < totalRounds) {
+          setupRound(currentRound + 1);
+        } else {
+          finishGame(isCorrect);
+        }
+      }, 1200);
+    } else {
+      // Khi bé trả lời sai, không cho phép qua câu sau. Ghi nhận câu đó là trả lời sai, nhưng chỉ cho qua câu khi bé chọn được đáp án đúng.
+      setRoundHasError(true);
+      soundManager.playWrong();
+      setAnsweredCorrect(false);
+      setWrongWords((prev) => [...prev, targetWord.word]);
+      updateWordProgress(profile.id, targetWord.id, targetWord.word, false, 'listening');
+
+      setTimeout(() => {
+        setAnsweredCorrect(null);
+      }, 800);
+    }
   };
 
   const finishGame = (lastWasCorrect: boolean, isEarlyExit = false) => {

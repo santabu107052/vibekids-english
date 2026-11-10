@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WordItem, Profile, GameScoreResult } from '../../types';
-import { recordGameResult } from '../../services/storage';
+import { recordGameResult, updateWordProgress } from '../../services/storage';
 import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
@@ -43,6 +43,7 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
   const [options, setOptions] = useState<WordItem[]>([]);
   const [selectedOption, setSelectedOption] = useState<WordItem | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
+  const [roundHasError, setRoundHasError] = useState(false);
   const [correctWords, setCorrectWords] = useState<string[]>([]);
   const [wrongWords, setWrongWords] = useState<string[]>([]);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
@@ -66,6 +67,7 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
 
     setSelectedOption(null);
     setIsAnswered(false);
+    setRoundHasError(false);
     setCurrentRound(roundNum);
   };
 
@@ -90,31 +92,37 @@ export const WordMatchGame: React.FC<WordMatchGameProps> = ({
     if (isAnswered || !currentWord) return;
 
     setSelectedOption(option);
-    setIsAnswered(true);
 
     const isCorrect = option.id === currentWord.id;
 
     if (isCorrect) {
+      setIsAnswered(true);
       soundManager.playCorrect();
-      setScore((prev) => prev + 10);
+      setScore((prev) => prev + (roundHasError ? 5 : 10));
       setCorrectWords((prev) => [...prev, currentWord.word]);
       playWordAudio(currentWord.word, currentWord.audioUrl);
+      updateWordProgress(profile.id, currentWord.id, currentWord.word, true, 'reading');
+
+      setTimeout(() => {
+        const isCompleted = !isInfinite && currentRound >= totalRounds;
+        if (isCompleted) {
+          finishGame(isCorrect);
+        } else {
+          setupRound(currentRound + 1);
+        }
+      }, 1200);
     } else {
+      // Khi bé trả lời sai, không cho phép qua câu sau. Ghi nhận câu đó là trả lời sai, nhưng chỉ cho qua câu khi bé chọn được đáp án đúng.
+      setRoundHasError(true);
       soundManager.playWrong();
       setLives((prev) => Math.max(0, prev - 1));
       setWrongWords((prev) => [...prev, currentWord.word]);
+      updateWordProgress(profile.id, currentWord.id, currentWord.word, false, 'reading');
+
+      setTimeout(() => {
+        setSelectedOption(null);
+      }, 800);
     }
-
-    setTimeout(() => {
-      const isGameOver = lives - (isCorrect ? 0 : 1) <= 0;
-      const isCompleted = !isInfinite && currentRound >= totalRounds;
-
-      if (isGameOver || isCompleted) {
-        finishGame(isCorrect);
-      } else {
-        setupRound(currentRound + 1);
-      }
-    }, 1200);
   };
 
   const finishGame = (lastWasCorrect: boolean, isEarlyExit = false) => {

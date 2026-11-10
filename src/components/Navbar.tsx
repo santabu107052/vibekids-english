@@ -7,7 +7,6 @@ interface NavbarProps {
   onOpenProfiles: () => void;
   onOpenWordManager: () => void;
   onOpenBackup: () => void;
-  onOpenMonetization?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -15,7 +14,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfiles,
   onOpenWordManager,
   onOpenBackup,
-  onOpenMonetization,
 }) => {
   const ageLabel = profile.age <= 8 ? 'Nhi đồng (6-8t)' : profile.age <= 11 ? 'Tiểu học (9-11t)' : 'Thiếu niên (12-15t)';
 
@@ -90,19 +88,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Database size={16} />
           </button>
-
-          {/* Quick Action: Monetization / AdMob Config */}
-          {onOpenMonetization && (
-            <button
-              type="button"
-              onClick={onOpenMonetization}
-              title="Cấu hình Kiếm Tiền AdMob"
-              className="p-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all cursor-pointer flex items-center gap-1"
-            >
-              <Award size={16} className="text-emerald-600" />
-              <span className="hidden lg:inline text-xs font-bold">Kiếm Tiền</span>
-            </button>
-          )}
         </div>
       </div>
     </header>

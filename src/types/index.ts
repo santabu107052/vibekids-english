@@ -17,6 +17,8 @@ export interface Profile {
   badges: string[];
 }
 
+export type SkillType = 'listening' | 'reading' | 'spelling';
+
 export interface WordItem {
   id: string;
   word: string;
@@ -35,6 +37,9 @@ export interface WordItem {
   lastReviewed?: string;
   correctCount: number;
   incorrectCount: number;
+  listeningCorrect?: number;
+  readingCorrect?: number;
+  spellingCorrect?: number;
 }
 
 export type GameType = 
