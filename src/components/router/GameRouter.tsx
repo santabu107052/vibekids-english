@@ -20,6 +20,10 @@ import { CandyBuilderGame } from '../games/CandyBuilderGame';
 import { ZooFeedingGame } from '../games/ZooFeedingGame';
 import { SecretAnimalGame } from '../games/SecretAnimalGame';
 
+// ✍️ 2 Game Luyện Chính Tả
+import { MissingLettersGame } from '../games/MissingLettersGame';
+import { SpellingDetectiveGame } from '../games/SpellingDetectiveGame';
+
 export interface GameRouterProps {
   activeGame: GameType;
   effectiveWords: WordItem[];
@@ -103,6 +107,11 @@ export const GameRouter: React.FC<GameRouterProps> = ({
       return <ZooFeedingGame {...commonProps} />;
     case 'secret_animal':
       return <SecretAnimalGame {...commonProps} />;
+    // ✍️ 2 Game Luyện Chính Tả
+    case 'missing_letters':
+      return <MissingLettersGame {...commonProps} />;
+    case 'spelling_detective':
+      return <SpellingDetectiveGame {...commonProps} />;
     case 'sentence_builder':
       return (
         <SentenceBuilderGame

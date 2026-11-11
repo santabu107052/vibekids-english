@@ -332,6 +332,8 @@ export function getSkillForGame(gameType: string): SkillType {
       return 'listening';
     case 'word_scramble':
     case 'spelling_bee':
+    case 'missing_letters':
+    case 'spelling_detective':
       return 'spelling';
     case 'memory_flip':
     case 'word_match':

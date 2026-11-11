@@ -56,6 +56,23 @@ const vocabGamesList: GameItem[] = [
     color: 'from-violet-400 to-purple-500',
     badge: 'Giải đố',
   },
+  // ✍️ 2 Game Luyện Chính Tả (mới)
+  {
+    id: 'missing_letters',
+    title: 'Chữ Cái Bị Mất',
+    desc: 'Điền chữ cái còn thiếu để hoàn thành từ vựng. Bé nhìn thấy từ hoàn chỉnh ngay!',
+    icon: '🔤',
+    color: 'from-indigo-400 to-violet-500',
+    badge: 'Chính tả',
+  },
+  {
+    id: 'spelling_detective',
+    title: 'Thám Tử Chính Tả',
+    desc: 'Tìm ra từ được viết đúng trong 3 lựa chọn — 2 từ kia bị bóp méo chữ cái đấy!',
+    icon: '⭐',
+    color: 'from-amber-400 to-orange-500',
+    badge: 'Chính tả',
+  },
   {
     id: 'memory_flip',
     title: 'Lật Thẻ Mặt Chữ & Nghĩa',

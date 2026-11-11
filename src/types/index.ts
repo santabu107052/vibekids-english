@@ -58,7 +58,10 @@ export type GameType =
   | 'mystery_garden'
   | 'candy_builder'
   | 'zoo_feeding'
-  | 'secret_animal';
+  | 'secret_animal'
+  // ✍️ 2 GAME LUYỆN CHÍNH TẢ MỚI
+  | 'missing_letters'
+  | 'spelling_detective';
 
 export interface GameScoreResult {
   gameType: GameType;
