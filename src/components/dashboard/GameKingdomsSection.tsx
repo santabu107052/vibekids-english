@@ -33,12 +33,12 @@ const vocabGamesList: GameItem[] = [
     badge: 'Vui chơi',
   },
   {
-    id: 'treasure_hunt',
-    title: 'Truy Tìm Kho Báu',
-    desc: 'Nghe âm thanh bí ẩn và mở đúng rương kho báu chứa viên ngọc quý.',
-    icon: '🗝️',
-    color: 'from-amber-400 to-yellow-500',
-    badge: 'Phiêu lưu',
+    id: 'candy_builder',
+    title: 'Nhà Thiết Kế Kẹo Ngọt',
+    desc: 'Trả lời đúng để xây tháp kẹo cao vút. Mỗi tầng là một viên kẹo sắc màu của bé!',
+    icon: '🍬',
+    color: 'from-pink-400 to-rose-500',
+    badge: 'Sáng tạo',
   },
   {
     id: 'zoo_feeding',

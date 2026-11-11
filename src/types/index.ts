@@ -56,7 +56,7 @@ export type GameType =
   // 🎮 5 GAME VUI CHƠI MỚI (Play-to-Learn, không áp lực)
   | 'bubble_pop'
   | 'mystery_garden'
-  | 'treasure_hunt'
+  | 'candy_builder'
   | 'zoo_feeding'
   | 'secret_animal';
 

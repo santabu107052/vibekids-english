@@ -5,7 +5,7 @@ import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
 import { soundManager } from '../../services/soundEffects';
-import { Volume2, Lightbulb } from 'lucide-react';
+import { Lightbulb, Volume2 } from 'lucide-react';
 
 interface ClueStep {
   label: string;
@@ -23,11 +23,9 @@ interface SecretAnimalGameProps {
 
 /**
  * 🕵️‍♀️ VỊ KHÁCH BÍ MẬT (Secret Animal Guess)
- * - Mỗi vòng: 3 gợi ý hé lộ dần về một từ vựng bí ẩn
- * - Gợi ý 1: Hình dáng/emoji gợi ý
- * - Gợi ý 2: Câu ví dụ có chứa từ (bị che khuất)
- * - Gợi ý 3: Định nghĩa tiếng Anh đơn giản
- * - Bé có thể trả lời ngay khi chỉ dùng 1 gợi ý (điểm cao) hoặc xem thêm gợi ý (điểm thấp hơn)
+ * - 3 gợi ý hé lộ DẦN: (1) Nhóm/chủ đề → (2) Câu ví dụ che từ → (3) ĐỊNH NGHĨA TIẾNG ANH
+ * - 🔊 Phát âm là GỢI Ý CUỐI CÙNG (gợi ý 4) — vì nghe phát âm sẽ lộ đáp án ngay
+ * - Bé đoán đúng với ít gợi ý hơn → được điểm cao hơn
  */
 export const SecretAnimalGame: React.FC<SecretAnimalGameProps> = ({
   words,
@@ -43,7 +41,7 @@ export const SecretAnimalGame: React.FC<SecretAnimalGameProps> = ({
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
   const [options, setOptions] = useState<WordItem[]>([]);
-  const [revealedClues, setRevealedClues] = useState(0);
+  const [revealedClues, setRevealedClues] = useState(1); // 1..3 = text clues, 4th = audio
   const [isAnswered, setIsAnswered] = useState(false);
   const [roundHasError, setRoundHasError] = useState(false);
   const [correctWords, setCorrectWords] = useState<string[]>([]);
@@ -61,14 +59,11 @@ export const SecretAnimalGame: React.FC<SecretAnimalGameProps> = ({
   };
 
   const getClues = (word: WordItem): ClueStep[] => {
-    const maskedSentence = word.exampleSentence.replace(
-      new RegExp(word.word, 'gi'),
-      '_____'
-    );
+    const maskedSentence = word.exampleSentence.replace(new RegExp(word.word, 'gi'), '_____');
     return [
       {
-        label: 'Gợi ý 1 — Hình dáng',
-        icon: word.emoji || '❓',
+        label: 'Gợi ý 1 — Chủ đề',
+        icon: '🗂️',
         content: `Từ này thuộc nhóm: ${word.category}`,
       },
       {
@@ -98,8 +93,7 @@ export const SecretAnimalGame: React.FC<SecretAnimalGameProps> = ({
     setIsAnswered(false);
     setRoundHasError(false);
     setCurrentRound(roundNum);
-
-    setTimeout(() => playWordAudio(target.word, target.audioUrl), 200);
+    // ❌ KHÔNG phát âm từ khi vào câu — phát âm chỉ là gợi ý cuối
   };
 
   const startNewGame = useCallback(() => {
@@ -119,9 +113,19 @@ export const SecretAnimalGame: React.FC<SecretAnimalGameProps> = ({
   }, [startNewGame]);
 
   const handleRevealClue = () => {
-    if (revealedClues < 3) {
+    if (revealedClues < 4) {
       setRevealedClues((prev) => prev + 1);
       soundManager.playCorrect();
+      // 🔊 Gợi ý thứ 4 = phát âm (gợi ý cuối cùng, sẽ lộ đáp án)
+      if (revealedClues === 3 && currentWord) {
+        playWordAudio(currentWord.word, currentWord.audioUrl);
+      }
+    }
+  };
+
+  const handlePlayAudioClue = () => {
+    if (currentWord) {
+      playWordAudio(currentWord.word, currentWord.audioUrl);
     }
   };
 
@@ -132,8 +136,8 @@ export const SecretAnimalGame: React.FC<SecretAnimalGameProps> = ({
     if (isCorrect) {
       soundManager.playCorrect();
       setIsAnswered(true);
-      // Ít gợi ý hơn = điểm cao hơn
-      const points = Math.max(3, 10 - (revealedClues - 1) * 2);
+      // Ít gợi ý hơn = điểm cao hơn (thang 10 → 3)
+      const points = Math.max(3, 11 - revealedClues * 2);
       setScore((prev) => prev + (roundHasError ? Math.ceil(points / 2) : points));
       setCorrectWords((prev) => [...prev, currentWord.word]);
       playWordAudio(currentWord.word, currentWord.audioUrl);
@@ -197,6 +201,8 @@ export const SecretAnimalGame: React.FC<SecretAnimalGameProps> = ({
   }
 
   const clues = getClues(currentWord);
+  const textCluesShown = Math.min(revealedClues, 3);
+  const audioClueRevealed = revealedClues >= 4;
 
   return (
     <div className="max-w-2xl mx-auto p-4 animate-in fade-in">
@@ -210,27 +216,26 @@ export const SecretAnimalGame: React.FC<SecretAnimalGameProps> = ({
       />
 
       {/* Secret Header */}
-      <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-3xl p-5 text-white text-center shadow-lg mb-4">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-purple-200 mb-1">
-          🎭 Từ bí ẩn cần tìm là gì?
+      <div className="relative overflow-hidden bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-3xl p-5 text-white text-center shadow-xl mb-4">
+        <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/15" />
+        <div className="relative">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-purple-200 mb-2">
+            🎭 Từ bí ẩn cần tìm là gì?
+          </div>
+          <div className="text-4xl mb-1">🔍</div>
+          <div className="text-[11px] text-purple-100 font-medium">
+            Đã mở {textCluesShown}/3 gợi ý chữ
+            {audioClueRevealed && ' + 1 gợi ý âm thanh'} — càng ít gợi ý điểm càng cao!
+          </div>
         </div>
-        <div className="text-3xl mb-2">🔍❓</div>
-        <button
-          type="button"
-          onClick={() => playWordAudio(currentWord.word, currentWord.audioUrl)}
-          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-xs font-bold transition-all cursor-pointer"
-        >
-          <Volume2 size={14} />
-          <span>Nghe âm thanh gợi ý</span>
-        </button>
       </div>
 
-      {/* Clues */}
-      <div className="space-y-2.5 mb-4">
-        {clues.slice(0, revealedClues).map((clue, idx) => (
+      {/* Text Clues */}
+      <div className="space-y-2.5 mb-3">
+        {clues.slice(0, textCluesShown).map((clue, idx) => (
           <div
             key={idx}
-            className="bg-white rounded-2xl p-3.5 border-2 border-purple-100 shadow-2xs flex items-start gap-3 animate-in fade-in slide-in-from-top-2"
+            className="bg-white rounded-2xl p-3.5 border-2 border-purple-100 shadow-2xs flex items-start gap-3"
           >
             <span className="text-xl shrink-0">{clue.icon}</span>
             <div>
@@ -245,15 +250,41 @@ export const SecretAnimalGame: React.FC<SecretAnimalGameProps> = ({
         ))}
       </div>
 
+      {/* Audio Clue — FINAL clue (only after all 3 text clues) */}
+      {audioClueRevealed && (
+        <div className="mb-3 p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 flex items-center gap-3">
+          <span className="text-xl">🔊</span>
+          <div className="flex-1">
+            <div className="text-[10px] font-black text-amber-700 uppercase tracking-wider">
+              Gợi ý 4 — Phát âm (gợi ý cuối cùng)
+            </div>
+            <div className="text-xs font-semibold text-amber-900 mt-0.5">
+              Nghe kỹ phát âm để chọn đáp án đúng nhé!
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handlePlayAudioClue}
+            className="shrink-0 w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer"
+          >
+            <Volume2 size={18} />
+          </button>
+        </div>
+      )}
+
       {/* Reveal more clues button */}
-      {revealedClues < 3 && (
+      {revealedClues < 4 && (
         <button
           type="button"
           onClick={handleRevealClue}
           className="w-full mb-4 py-2.5 rounded-2xl border-2 border-dashed border-purple-300 text-purple-700 hover:bg-purple-50 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
         >
           <Lightbulb size={14} />
-          <span>Xem thêm gợi ý ({3 - revealedClues} còn lại — điểm thưởng sẽ thấp hơn)</span>
+          <span>
+            {revealedClues < 3
+              ? `Xem thêm gợi ý chữ (${3 - revealedClues} còn lại)`
+              : 'Mở gợi ý phát âm (gợi ý cuối cùng)'}
+          </span>
         </button>
       )}
 

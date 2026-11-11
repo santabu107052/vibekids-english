@@ -329,7 +329,6 @@ export function addRecommendedWordsBatch(
 export function getSkillForGame(gameType: string): SkillType {
   switch (gameType) {
     case 'sound_detective':
-    case 'treasure_hunt': // Nghe âm thanh để tìm kho báu
       return 'listening';
     case 'word_scramble':
     case 'spelling_bee':
@@ -338,6 +337,7 @@ export function getSkillForGame(gameType: string): SkillType {
     case 'word_match':
     case 'bubble_pop': // Chạm bong bóng đúng nghĩa
     case 'mystery_garden': // Trồng hoa bằng cách chọn từ đúng nghĩa
+    case 'candy_builder': // Xây tháp kẹo bằng cách chọn từ đúng nghĩa
     case 'zoo_feeding': // Cho thú ăn đúng món theo nghĩa
     case 'secret_animal': // Giải mã bí ẩn qua gợi ý
     default:

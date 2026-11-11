@@ -6,12 +6,13 @@ import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
 import { soundManager } from '../../services/soundEffects';
 
-interface FallingWord {
+interface FloatingBubble {
   id: string;
   word: WordItem;
-  x: number; // percentage 0-100
-  y: number; // percentage 0-100
-  speed: number;
+  x: number; // % of play area width
+  y: number; // % of play area height
+  drift: number; // horizontal drift velocity
+  bob: number; // bobbing phase offset
 }
 
 interface BubblePopGameProps {
@@ -25,10 +26,10 @@ interface BubblePopGameProps {
 type BubbleMood = 'idle' | 'correct' | 'wrong';
 
 /**
- * 🎈 BONG BÓNG TỪ VỰNG BAY LƠ LỬNG (Falling Bubbles)
- * - 3 bong bóng mang từ tiếng Anh rơi nhẹ nhàng từ trên xuống
- * - Bé chạm đúng bong bóng khớp nghĩa tiếng Việt
- * - Trả lời sai: bong bóng rung nhẹ, KHÔNG mất mạng, KHÔNG trừ điểm (chỉ hạ độ chính xác)
+ * 🎈 BONG BÓNG TỪ VỰNG (3D GLOSSY BUBBLES)
+ * - Bong bóng 3D bóng loáng với highlight gradient, glow và bóng đổ
+ * - KHÔNG tự phát âm từ câu hỏi (vì sẽ lộ đáp án) — chỉ phát khi bé trả lời đúng
+ * - Bong bóng trôi nổi nhẹ nhàng lơ lửng trong khung
  */
 export const BubblePopGame: React.FC<BubblePopGameProps> = ({
   words,
@@ -43,7 +44,7 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
   const [currentRound, setCurrentRound] = useState(1);
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
-  const [bubbles, setBubbles] = useState<FallingWord[]>([]);
+  const [bubbles, setBubbles] = useState<FloatingBubble[]>([]);
   const [mood, setMood] = useState<BubbleMood>('idle');
   const [roundHasError, setRoundHasError] = useState(false);
   const [correctWords, setCorrectWords] = useState<string[]>([]);
@@ -52,7 +53,8 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
   const [wordPool, setWordPool] = useState<WordItem[]>([]);
 
   const animRef = useRef<number | null>(null);
-  const bubblesRef = useRef<FallingWord[]>([]);
+  const bubblesRef = useRef<FloatingBubble[]>([]);
+  const frameRef = useRef(0);
 
   const shuffle = <T,>(arr: T[]): T[] => {
     const result = [...arr];
@@ -61,6 +63,32 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
       [result[i], result[j]] = [result[j], result[i]];
     }
     return result;
+  };
+
+  const setupRound = (roundNum: number, queue: WordItem[] = wordPool) => {
+    if (queue.length === 0) return;
+    const targetIdx = (roundNum - 1) % queue.length;
+    const target = queue[targetIdx];
+    setCurrentWord(target);
+
+    const others = queue.filter((w) => w.id !== target.id);
+    const distractors = shuffle(others).slice(0, 2);
+    const options = shuffle([target, ...distractors]);
+
+    const newBubbles: FloatingBubble[] = options.map((w, i) => ({
+      id: `bubble-${roundNum}-${i}-${w.id}`,
+      word: w,
+      x: 26 + i * 24,
+      y: 30 + i * 18,
+      drift: (Math.random() - 0.5) * 0.04,
+      bob: Math.random() * Math.PI * 2,
+    }));
+    bubblesRef.current = newBubbles;
+    setBubbles(newBubbles);
+    setMood('idle');
+    setRoundHasError(false);
+    setCurrentRound(roundNum);
+    // ❌ KHÔNG tự phát âm từ câu hỏi — sẽ lộ đáp án cho bé
   };
 
   const startNewGame = useCallback(() => {
@@ -77,52 +105,27 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [words]);
 
-  const setupRound = (roundNum: number, queue: WordItem[] = wordPool) => {
-    if (queue.length === 0) return;
-    const targetIdx = (roundNum - 1) % queue.length;
-    const target = queue[targetIdx];
-    setCurrentWord(target);
-
-    // 3 bong bóng: 1 đúng + 2 nhiễu
-    const others = queue.filter((w) => w.id !== target.id);
-    const distractors = shuffle(others).slice(0, 2);
-    const options = shuffle([target, ...distractors]);
-
-    const newBubbles: FallingWord[] = options.map((w, i) => ({
-      id: `bubble-${roundNum}-${i}-${w.id}`,
-      word: w,
-      x: 20 + i * 30,
-      // ✅ Hiển thị NGAY trong khung nhìn (30% - 72%) thay vì bay lên từ ngoài màn hình
-      y: 32 + i * 20,
-      speed: 0.08 + Math.random() * 0.06,
-    }));
-    bubblesRef.current = newBubbles;
-    setBubbles(newBubbles);
-    setMood('idle');
-    setRoundHasError(false);
-    setCurrentRound(roundNum);
-
-    setTimeout(() => playWordAudio(target.word, target.audioUrl), 200);
-  };
-
   useEffect(() => {
     startNewGame();
   }, [startNewGame]);
 
-  // Animation Loop: bong bóng trôi nổi nhẹ nhàng trong khung nhìn
+  // Gentle floating animation
   useEffect(() => {
     if (!currentWord) return;
 
-    let frame = 0;
     const tick = () => {
-      frame++;
-      // Chỉ cập nhật mỗi 3 frame (~20fps) để không làm nặng React re-render
-      if (frame % 3 === 0) {
-        bubblesRef.current = bubblesRef.current.map((b) => ({
-          ...b,
-          // Bay lên rồi quay vòng xuống dưới (luôn nằm trong khung 20% - 88%)
-          y: b.y <= 20 ? 88 : b.y - b.speed,
-        }));
+      frameRef.current++;
+      if (frameRef.current % 3 === 0) {
+        const t = frameRef.current / 60;
+        bubblesRef.current = bubblesRef.current.map((b) => {
+          const nextX = b.x + b.drift;
+          const nextY = b.y + Math.sin(t + b.bob) * 0.35;
+          return {
+            ...b,
+            x: nextX < 16 || nextX > 84 ? b.x - b.drift : nextX,
+            y: nextY < 24 || nextY > 78 ? b.y - Math.sin(t + b.bob) * 0.35 : nextY,
+          };
+        });
         setBubbles([...bubblesRef.current]);
       }
       animRef.current = requestAnimationFrame(tick);
@@ -134,7 +137,7 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
     };
   }, [currentWord?.id]);
 
-  const handleBubbleTap = (bubble: FallingWord) => {
+  const handleBubbleTap = (bubble: FloatingBubble) => {
     if (!currentWord || mood === 'correct') return;
     const isCorrect = bubble.word.id === currentWord.id;
 
@@ -143,6 +146,7 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
       setMood('correct');
       setScore((prev) => prev + (roundHasError ? 5 : 10));
       setCorrectWords((prev) => [...prev, currentWord.word]);
+      // ✅ Chỉ phát âm khi ĐÚNG — củng cố phát âm chuẩn
       playWordAudio(currentWord.word, currentWord.audioUrl);
       updateWordProgress(profile.id, currentWord.id, currentWord.word, true, 'reading');
 
@@ -152,14 +156,13 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
         } else {
           setupRound(currentRound + 1);
         }
-      }, 1000);
+      }, 1100);
     } else {
       soundManager.playWrong();
       setMood('wrong');
       setRoundHasError(true);
       setWrongWords((prev) => [...prev, bubble.word.word]);
       updateWordProgress(profile.id, bubble.word.id, bubble.word.word, false, 'reading');
-
       setTimeout(() => setMood('idle'), 700);
     }
   };
@@ -218,37 +221,44 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
         onExit={handleExitGame}
       />
 
-      {/* Vietnamese Meaning Banner */}
-      <div className="bg-gradient-to-r from-sky-500 to-cyan-500 rounded-3xl p-5 text-white text-center shadow-lg mb-4">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-cyan-100 mb-1">
-          Chạm bong bóng từ tiếng Anh có nghĩa:
+      {/* Target Meaning Banner */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 rounded-3xl p-5 text-white text-center shadow-xl mb-4">
+        <div className="absolute -top-8 -right-6 w-24 h-24 rounded-full bg-white/10" />
+        <div className="absolute -bottom-6 -left-6 w-20 h-20 rounded-full bg-white/10" />
+        <div className="relative">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-blue-100 mb-1">
+            🫧 Chạm bong bóng có từ tiếng Anh khớp nghĩa:
+          </div>
+          <h3 className="text-2xl font-black flex items-center justify-center gap-2">
+            <span className="text-3xl">{currentWord.emoji}</span>
+            <span>{currentWord.meaningVi}</span>
+          </h3>
         </div>
-        <h3 className="text-2xl font-black flex items-center justify-center gap-2">
-          <span>{currentWord.emoji}</span>
-          <span>{currentWord.meaningVi}</span>
-        </h3>
       </div>
 
-      {/* Floating Bubbles Play Area */}
+      {/* 3D Bubble Play Area */}
       <div
-        className={`relative w-full rounded-3xl overflow-hidden border-4 transition-colors duration-300 ${
+        className={`relative w-full rounded-[2rem] overflow-hidden border-4 shadow-inner transition-colors duration-300 ${
           mood === 'wrong'
-            ? 'border-rose-300 bg-rose-50'
+            ? 'border-rose-300'
             : mood === 'correct'
-            ? 'border-emerald-300 bg-emerald-50'
-            : 'border-sky-100'
+            ? 'border-emerald-300'
+            : 'border-sky-200'
         }`}
         style={{
-          height: '380px',
+          height: '400px',
           background:
             mood === 'wrong'
-              ? undefined
-              : 'radial-gradient(circle at 20% 15%, #e0f2fe 0%, #bae6fd 45%, #7dd3fc 100%)',
+              ? 'radial-gradient(circle at 30% 20%, #ffe4e6 0%, #fecdd3 50%, #fda4af 100%)'
+              : mood === 'correct'
+              ? 'radial-gradient(circle at 30% 20%, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)'
+              : 'radial-gradient(circle at 25% 18%, #f0f9ff 0%, #dbeafe 45%, #93c5fd 100%)',
         }}
       >
-        {/* Decor clouds */}
-        <div className="absolute top-6 left-6 text-3xl opacity-60 select-none">☁️</div>
-        <div className="absolute top-24 right-10 text-2xl opacity-50 select-none">☁️</div>
+        {/* Soft clouds */}
+        <div className="absolute top-5 left-5 text-4xl opacity-40 select-none">☁️</div>
+        <div className="absolute bottom-8 right-6 text-3xl opacity-30 select-none">☁️</div>
+        <div className="absolute top-1/2 left-8 text-2xl opacity-20 select-none">☁️</div>
 
         {bubbles.map((bubble) => {
           const isWrongBubble = mood === 'wrong' && bubble.word.id !== currentWord.id;
@@ -259,39 +269,80 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
               key={bubble.id}
               type="button"
               onClick={() => handleBubbleTap(bubble)}
-              className={`absolute rounded-full flex items-center justify-center font-black text-sm sm:text-base shadow-xl cursor-pointer select-none ${
-                isCorrectBubble
-                  ? 'bg-emerald-500 text-white ring-4 ring-emerald-200'
-                  : isWrongBubble
-                  ? 'bg-rose-200 text-rose-700 ring-2 ring-rose-300'
-                  : 'bg-white/95 text-sky-900 hover:bg-white ring-2 ring-sky-200'
-              }`}
+              className="absolute rounded-full flex items-center justify-center font-black cursor-pointer select-none border-0 p-0 transition-transform duration-150 active:scale-95"
               style={{
                 left: `${bubble.x}%`,
                 top: `${bubble.y}%`,
-                width: '108px',
-                height: '108px',
-                transform: `translate(-50%, -50%) scale(${
-                  isCorrectBubble ? 1.15 : 1
-                })`,
-                // Không dùng transition-all để tránh lag khi chạy animation 20fps
+                width: '116px',
+                height: '116px',
+                transform: `translate(-50%, -50%) scale(${isCorrectBubble ? 1.18 : 1})`,
                 willChange: 'transform',
+                // 🌟 3D GLOSSY BUBBLE — multi-layer gradients, inner glow, specular highlight
+                background: isCorrectBubble
+                  ? `radial-gradient(circle at 32% 26%, #ffffff 0%, #d1fae5 12%, #34d399 45%, #059669 78%, #047857 100%)`
+                  : isWrongBubble
+                  ? `radial-gradient(circle at 32% 26%, #ffffff 0%, #fecdd3 14%, #fb7185 52%, #e11d48 85%, #9f1239 100%)`
+                  : `radial-gradient(circle at 32% 26%, #ffffff 0%, #e0f2fe 12%, #60a5fa 46%, #3b82f6 76%, #1d4ed8 100%)`,
+                boxShadow: isCorrectBubble
+                  ? `inset -10px -12px 24px rgba(4,120,87,0.55), inset 8px 8px 18px rgba(255,255,255,0.75), 0 10px 22px rgba(16,185,129,0.45), 0 0 0 5px rgba(167,243,208,0.6)`
+                  : isWrongBubble
+                  ? `inset -10px -12px 24px rgba(159,18,57,0.5), inset 8px 8px 18px rgba(255,255,255,0.7), 0 10px 22px rgba(244,63,94,0.4)`
+                  : `inset -10px -12px 24px rgba(29,78,216,0.5), inset 8px 8px 18px rgba(255,255,255,0.85), 0 12px 24px rgba(59,130,246,0.35), 0 0 0 4px rgba(191,219,254,0.5)`,
               }}
             >
-              <span className="px-2 text-center leading-tight capitalize">{bubble.word.word}</span>
+              {/* Specular highlight (bright glossy spot) */}
+              <span
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  top: '12%',
+                  left: '20%',
+                  width: '32%',
+                  height: '24%',
+                  background:
+                    'radial-gradient(ellipse at center, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.55) 55%, rgba(255,255,255,0) 100%)',
+                  filter: 'blur(1px)',
+                }}
+              />
+              {/* Secondary small highlight */}
+              <span
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  bottom: '16%',
+                  right: '18%',
+                  width: '16%',
+                  height: '12%',
+                  background:
+                    'radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%)',
+                }}
+              />
+              {/* Word text */}
+              <span
+                className="relative z-10 px-2 text-center leading-tight capitalize text-white"
+                style={{
+                  fontSize: bubble.word.word.length > 8 ? '13px' : bubble.word.word.length > 5 ? '15px' : '17px',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.35), 0 1px 1px rgba(0,0,0,0.5)',
+                }}
+              >
+                {bubble.word.word}
+              </span>
             </button>
           );
         })}
 
         {mood === 'correct' && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="text-6xl animate-bounce">✨</span>
+            <span className="text-7xl animate-bounce drop-shadow-2xl">✨</span>
+          </div>
+        )}
+        {mood === 'wrong' && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="text-5xl animate-shake opacity-80">💫</span>
           </div>
         )}
       </div>
 
       <p className="text-center text-[11px] text-slate-400 mt-3 font-medium">
-        💡 Bong bóng bay lơ lửng nhẹ nhàng — bé chạm đúng bong bóng có nghĩa vừa hiện nhé!
+        💡 Bong bóng lơ lửng nhẹ nhàng — bé chạm đúng bong bóng khớp nghĩa nhé!
       </p>
 
       {gameResult && (

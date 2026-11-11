@@ -16,7 +16,7 @@ import { SentenceBuilderGame } from '../games/SentenceBuilderGame';
 // 🎮 5 Game Vui Chơi Mới (Play-to-Learn)
 import { BubblePopGame } from '../games/BubblePopGame';
 import { MysteryGardenGame } from '../games/MysteryGardenGame';
-import { TreasureHuntGame } from '../games/TreasureHuntGame';
+import { CandyBuilderGame } from '../games/CandyBuilderGame';
 import { ZooFeedingGame } from '../games/ZooFeedingGame';
 import { SecretAnimalGame } from '../games/SecretAnimalGame';
 
@@ -97,8 +97,8 @@ export const GameRouter: React.FC<GameRouterProps> = ({
       return <BubblePopGame {...commonProps} />;
     case 'mystery_garden':
       return <MysteryGardenGame {...commonProps} />;
-    case 'treasure_hunt':
-      return <TreasureHuntGame {...commonProps} />;
+    case 'candy_builder':
+      return <CandyBuilderGame {...commonProps} />;
     case 'zoo_feeding':
       return <ZooFeedingGame {...commonProps} />;
     case 'secret_animal':
