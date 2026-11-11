@@ -27,7 +27,10 @@ export type MiniGameVariant =
   | 'spelling_detective'
   | 'secret_animal'
   | 'zoo_feeding'
-  | 'bubble_pop';
+  | 'bubble_pop'
+  | 'word_match'
+  | 'mystery_garden'
+  | 'candy_builder';
 
 const getSkillForVariant = (variant: MiniGameVariant): SkillType => {
   if (variant === 'sound_detective') return 'listening';
@@ -109,9 +112,8 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   const [roundHasError, setRoundHasError] = useState(false);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
 
-  // 9 Mini-Games rotating across questions (Memory Flip đã được đưa ra khỏi vòng luân phiên theo yêu cầu)
+  // 11 Mini-Games luân phiên (đã loại Lật Thẻ + Bong Bóng Bắt Từ cũ vì trùng cơ chế với Bong Bóng Từ Vựng)
   const VARIANT_CYCLE: MiniGameVariant[] = [
-    'bubble_match',
     'sound_detective',
     'scramble',
     'spelling',
@@ -120,6 +122,9 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     'secret_animal',
     'zoo_feeding',
     'bubble_pop',
+    'word_match',
+    'mystery_garden',
+    'candy_builder',
   ];
 
   const setupRound = (roundNum: number, queue: WordItem[] = wordQueue) => {
@@ -408,6 +413,12 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
         return { name: 'Bữa Tiệc Sở Thú', icon: '🍽️', instruction: 'Dịch nghĩa và cho bạn thú ăn đúng món:' };
       case 'bubble_pop':
         return { name: 'Bong Bóng Từ Vựng', icon: '🫧', instruction: 'Chạm bong bóng có từ tiếng Anh khớp nghĩa:' };
+      case 'word_match':
+        return { name: 'Bắt Từ Nhanh', icon: '⚡', instruction: 'Chọn nghĩa tiếng Việt chính xác của từ vựng:' };
+      case 'mystery_garden':
+        return { name: 'Khu Vườn Bí Ẩn', icon: '🌻', instruction: 'Chọn từ tiếng Anh đúng nghĩa để trồng hoa:' };
+      case 'candy_builder':
+        return { name: 'Nhà Thiết Kế Kẹo Ngọt', icon: '🍬', instruction: 'Chọn từ đúng nghĩa để xây tháp kẹo:' };
       default:
         return { name: 'Trò Chơi', icon: '🎮', instruction: 'Chọn đáp án đúng:' };
     }
@@ -443,7 +454,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
           <span>Câu {currentRound}: <strong className="text-indigo-700">{variantInfo.name}</strong></span>
         </span>
         <span className="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white font-extrabold text-[11px]">
-          Luân phiên 9 Game 🔄
+          Luân phiên 11 Game 🔄
         </span>
       </div>
 
@@ -1058,6 +1069,178 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
                   >
                     {opt.word}
                   </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-xs text-slate-400">{variantInfo.instruction}</p>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VARIANT 10: WORD MATCH (Bắt từ nhanh)                     */}
+      {/* ======================================================== */}
+      {currentVariant === 'word_match' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl p-6 border-4 border-indigo-100 shadow-xl text-center relative">
+            <div className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">
+              Chọn nghĩa tiếng Việt chính xác của từ:
+            </div>
+            <h3 className="text-3xl font-black text-slate-800 capitalize flex items-center justify-center gap-2">
+              <span>{currentWord.emoji}</span>
+              <span>{currentWord.word}</span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-1 font-mono">{currentWord.phonetic}</p>
+            <button
+              onClick={() => playWordAudio(currentWord.word, currentWord.audioUrl)}
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-xs font-bold transition-all cursor-pointer"
+            >
+              <Volume2 size={14} /> Nghe phát âm
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {options.map((opt) => {
+              const isTarget = opt.id === currentWord.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={isAnswered}
+                  onClick={() => handleAnswerSubmit(isTarget)}
+                  className={`p-4 rounded-3xl border-3 font-black text-base transition-all shadow-sm active:scale-95 cursor-pointer ${
+                    isAnswered
+                      ? isTarget
+                        ? 'bg-emerald-500 border-emerald-600 text-white ring-4 ring-emerald-200'
+                        : 'bg-slate-50 border-slate-200 text-slate-400 opacity-50'
+                      : 'bg-white border-indigo-200 text-indigo-950 hover:border-indigo-400 hover:bg-indigo-50'
+                  }`}
+                >
+                  {opt.meaningVi}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-xs text-slate-400">{variantInfo.instruction}</p>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VARIANT 11: MYSTERY GARDEN (Khu vườn bí ẩn)                */}
+      {/* ======================================================== */}
+      {currentVariant === 'mystery_garden' && (
+        <div className="space-y-5">
+          <div className="rounded-3xl border-4 border-green-200 bg-linear-to-b from-sky-100 via-emerald-50 to-lime-100 p-4">
+            <div className="text-xs font-black text-emerald-700 mb-2">
+              🌱 Vườn hoa của bé ({correctWords.length} bông)
+            </div>
+            <div className="flex flex-wrap items-end gap-1.5 min-h-[48px]">
+              {correctWords.length === 0 ? (
+                <span className="text-xs text-emerald-600 italic">
+                  Chọn đúng từ để trồng bông hoa đầu tiên!
+                </span>
+              ) : (
+                Array.from({ length: Math.min(correctWords.length, 24) }).map((_, i) => (
+                  <span key={i} className="text-2xl animate-bloom">
+                    {['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'][i % 6]}
+                  </span>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-5 border-4 border-emerald-100 shadow-lg text-center">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 mb-1">
+              🌱 Hạt giống bí ẩn — chọn từ tiếng Anh đúng nghĩa:
+            </div>
+            <h3 className="text-xl font-black text-slate-800 flex items-center justify-center gap-2">
+              <span className="text-2xl">{currentWord.emoji}</span>
+              <span>{currentWord.meaningVi}</span>
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {options.slice(0, 3).map((opt) => {
+              const isTarget = opt.id === currentWord.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={isAnswered}
+                  onClick={() => handleAnswerSubmit(isTarget)}
+                  className={`p-4 rounded-3xl border-3 font-black text-base transition-all shadow-sm active:scale-95 cursor-pointer capitalize ${
+                    isAnswered
+                      ? isTarget
+                        ? 'bg-emerald-500 border-emerald-600 text-white ring-4 ring-emerald-200'
+                        : 'bg-slate-50 border-slate-200 text-slate-400 opacity-50'
+                      : 'bg-white border-emerald-200 text-emerald-950 hover:border-emerald-400 hover:bg-emerald-50'
+                  }`}
+                >
+                  {opt.word}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-xs text-slate-400">{variantInfo.instruction}</p>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VARIANT 12: CANDY BUILDER (Nhà thiết kế kẹo ngọt)          */}
+      {/* ======================================================== */}
+      {currentVariant === 'candy_builder' && (
+        <div className="space-y-5">
+          <div className="rounded-3xl border-4 border-pink-200 bg-linear-to-b from-pink-50 via-rose-50 to-amber-50 p-4 min-h-[150px] relative overflow-hidden">
+            <div className="text-xs font-black text-pink-600 mb-2">
+              🍭 Tháp kẹo của bé ({correctWords.length} tầng)
+            </div>
+            <div className="flex flex-col-reverse items-center gap-0.5">
+              {correctWords.length === 0 ? (
+                <span className="text-xs text-pink-400 italic">Chọn đúng để xây viên kẹo đầu tiên!</span>
+              ) : (
+                correctWords.slice(0, 20).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`rounded-md bg-linear-to-b ${
+                      ['from-pink-400 to-rose-500', 'from-amber-300 to-orange-400', 'from-lime-300 to-green-400', 'from-cyan-300 to-blue-400', 'from-violet-400 to-purple-500'][idx % 5]
+                    } flex items-center justify-center shadow-sm animate-bloom`}
+                    style={{ width: `${Math.max(28, 88 - idx * 3)}%`, height: '20px' }}
+                  >
+                    <span className="text-xs">{['🍬', '🍭', '🧁', '🍩', '🍪', '🎂'][idx % 6]}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="bg-linear-to-r from-pink-500 to-fuchsia-500 rounded-3xl p-4 text-white text-center shadow-lg">
+            <div className="text-[11px] font-bold uppercase text-pink-100 mb-1">
+              Chọn từ đúng nghĩa để xây tầng kẹo mới:
+            </div>
+            <h3 className="text-xl font-black flex items-center justify-center gap-2">
+              <span>{currentWord.emoji}</span>
+              <span>{currentWord.meaningVi}</span>
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {options.slice(0, 3).map((opt) => {
+              const isTarget = opt.id === currentWord.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={isAnswered}
+                  onClick={() => handleAnswerSubmit(isTarget)}
+                  className={`p-4 rounded-3xl border-3 font-black text-base transition-all shadow-sm active:scale-95 cursor-pointer capitalize ${
+                    isAnswered
+                      ? isTarget
+                        ? 'bg-emerald-500 border-emerald-600 text-white ring-4 ring-emerald-200'
+                        : 'bg-slate-50 border-slate-200 text-slate-400 opacity-50'
+                      : 'bg-white border-pink-200 text-pink-950 hover:border-pink-400 hover:bg-pink-50'
+                  }`}
+                >
+                  {opt.word}
                 </button>
               );
             })}
