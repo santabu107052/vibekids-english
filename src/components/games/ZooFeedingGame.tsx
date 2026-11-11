@@ -6,15 +6,6 @@ import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
 import { soundManager } from '../../services/soundEffects';
 
-interface ZooAnimal {
-  id: string;
-  word: WordItem;
-  animalEmoji: string;
-  isHappy: boolean;
-  isSad: boolean;
-  isEating: boolean;
-}
-
 interface ZooFeedingGameProps {
   words: WordItem[];
   profile: Profile;
@@ -23,15 +14,34 @@ interface ZooFeedingGameProps {
   onProfileUpdated: () => void;
 }
 
-const ANIMAL_EMOJIS = ['🐻', '🐼', '🐨', '🐯', '🦊', '🐰', '🐹', '🦝', '🐧', '🦔'];
-const FOOD_EMOJIS = ['🍎', '🍌', '🥕', '🍖', '🥜', '🍯', '🌰', '🍇'];
+type AnimalMood = 'waiting' | 'eating' | 'happy' | 'sad' | 'angry';
+
+// Các bạn thú "đầu bếp" luân phiên ngồi vào bàn
+const GUEST_ANIMALS = [
+  { emoji: '🐻', name: 'Gấu Nâu' },
+  { emoji: '🐼', name: 'Gấu Trúc' },
+  { emoji: '🦊', name: 'Cáo Nhỏ' },
+  { emoji: '🐰', name: 'Thỏ Bông' },
+  { emoji: '🐯', name: 'Hổ Con' },
+  { emoji: '🐨', name: 'Koala' },
+  { emoji: '🐧', name: 'Cánh Cụt' },
+  { emoji: '🐹', name: 'Chuột Hamster' },
+  { emoji: '🐷', name: 'Heo Con' },
+  { emoji: '🦝', name: 'Gấu Mèo' },
+];
+
+const FOOD_LIST = ['🍎', '🍌', '🥕', '🍖', '🥜', '🍯', '🌰', '🍇', '🍓', '🥦'];
 
 /**
- * 🦁 BỮA TIỆC SỞ THÚ (Zoo Feeding Party)
- * - Bé đọc nghĩa tiếng Việt → chọn đúng từ tiếng Anh để cho thú ăn
- * - ❌ Đáp án KHÔNG có icon/emoji gợi ý — chỉ có chữ để bé đọc thật
- * - ✅ Trả lời ĐÚNG: thú nhảy lên, ăn miệng nhai nhóp nhép, hiện ❤️
- * - 😢 Trả lời SAI: thú lắc đầu buồn, hiện 💔 rồi bé thử lại
+ * 🍽️ BỮA TIỆC SỞ THÚ (Zoo Dinner Table — Redesigned)
+ *
+ * Bố cục: Một BÀN ĂN có:
+ *   - 1 bạn thú ngồi giữa bàn, tay cầm muỗng nĩa, trước mặt là DĨA TRỐNG
+ *   - Câu hỏi = nghĩa tiếng Việt của từ cần tìm
+ *   - 3 đáp án = 3 MÓN ĂN đặt trên bàn (mỗi món ghi 1 từ tiếng Anh, KHÔNG có icon)
+ *
+ * - Bé trả lời ĐÚNG → dĩa trống có thức ăn, thú ăn ngon lành và reo vui 😋→🥳
+ * - Bé trả lời SAI  → thú buồn 😢 hoặc tức giận 😠, dĩa vẫn trống
  */
 export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
   words,
@@ -46,9 +56,13 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
   const [currentRound, setCurrentRound] = useState(1);
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
-  const [animals, setAnimals] = useState<ZooAnimal[]>([]);
+  const [options, setOptions] = useState<WordItem[]>([]);
+  const [animal, setAnimal] = useState(GUEST_ANIMALS[0]);
+  const [food, setFood] = useState('🍎');
+  const [mood, setMood] = useState<AnimalMood>('waiting');
+  const [plateFood, setPlateFood] = useState<string | null>(null);
   const [fedCount, setFedCount] = useState(0);
-  const [currentFood, setCurrentFood] = useState<string>('🍎');
+  const [wrongAttempts, setWrongAttempts] = useState(0);
   const [roundHasError, setRoundHasError] = useState(false);
   const [correctWords, setCorrectWords] = useState<string[]>([]);
   const [wrongWords, setWrongWords] = useState<string[]>([]);
@@ -72,23 +86,16 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
 
     const others = queue.filter((w) => w.id !== target.id);
     const distractors = shuffle(others).slice(0, 2);
-    const options = shuffle([target, ...distractors]);
-    const animalEmojis = shuffle([...ANIMAL_EMOJIS]).slice(0, 3);
+    setOptions(shuffle([target, ...distractors]));
 
-    setAnimals(
-      options.map((w, i) => ({
-        id: `animal-${roundNum}-${i}-${w.id}`,
-        word: w,
-        animalEmoji: animalEmojis[i],
-        isHappy: false,
-        isSad: false,
-        isEating: false,
-      }))
-    );
-    setCurrentFood(FOOD_EMOJIS[(roundNum - 1) % FOOD_EMOJIS.length]);
+    setAnimal(GUEST_ANIMALS[(roundNum - 1) % GUEST_ANIMALS.length]);
+    setFood(FOOD_LIST[(roundNum - 1) % FOOD_LIST.length]);
+    setMood('waiting');
+    setPlateFood(null);
+    setWrongAttempts(0);
     setRoundHasError(false);
     setCurrentRound(roundNum);
-    // ❌ Không phát âm tự động
+    // ❌ Không phát âm tự động để tránh lộ đáp án
   };
 
   const startNewGame = useCallback(() => {
@@ -108,25 +115,21 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
     startNewGame();
   }, [startNewGame]);
 
-  const handleFeed = (animal: ZooAnimal) => {
-    if (!currentWord || animals.some((a) => a.isHappy)) return;
-    const isCorrect = animal.word.id === currentWord.id;
+  const handleServe = (option: WordItem) => {
+    if (!currentWord || mood === 'happy' || mood === 'eating') return;
+    const isCorrect = option.id === currentWord.id;
 
     if (isCorrect) {
       soundManager.playCorrect();
-      // ✅ Animation 3 bước: nhảy lên → ăn (nhai) → hạnh phúc
-      setAnimals((prev) =>
-        prev.map((a) =>
-          a.id === animal.id ? { ...a, isEating: true, isHappy: false, isSad: false } : a
-        )
-      );
+      // Bước 1: dĩa có thức ăn, thú bắt đầu ăn
+      setPlateFood(food);
+      setMood('eating');
 
       setTimeout(() => {
-        setAnimals((prev) =>
-          prev.map((a) => (a.id === animal.id ? { ...a, isEating: false, isHappy: true } : a))
-        );
+        // Bước 2: ăn xong, thú reo vui
+        setMood('happy');
         soundManager.playVictory();
-      }, 450);
+      }, 700);
 
       setScore((prev) => prev + (roundHasError ? 5 : 10));
       setFedCount((prev) => prev + 1);
@@ -140,18 +143,20 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
         } else {
           setupRound(currentRound + 1);
         }
-      }, 1500);
+      }, 1900);
     } else {
       soundManager.playWrong();
       setRoundHasError(true);
-      // 😢 Animation: thú buồn, lắc đầu
-      setAnimals((prev) => prev.map((a) => (a.id === animal.id ? { ...a, isSad: true } : a)));
+      // Lần sai đầu tiên: thú buồn. Từ lần thứ 2 trở đi: thú tức giận
+      const nextWrong = wrongAttempts + 1;
+      setWrongAttempts(nextWrong);
+      setMood(nextWrong >= 2 ? 'angry' : 'sad');
       setWrongWords((prev) => [...prev, currentWord.word]);
       updateWordProgress(profile.id, currentWord.id, currentWord.word, false, 'reading');
 
       setTimeout(() => {
-        setAnimals((prev) => prev.map((a) => ({ ...a, isSad: false })));
-      }, 1100);
+        setMood('waiting');
+      }, 1400);
     }
   };
 
@@ -189,7 +194,7 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
   if (!currentWord) {
     return (
       <div className="p-8 text-center text-slate-500">
-        <div className="text-4xl mb-2">🦁</div>
+        <div className="text-4xl mb-2">🍽️</div>
         <p className="text-sm font-bold">Bé cần thêm từ vựng để mở tiệc sở thú nhé!</p>
         <button onClick={onExit} className="mt-4 px-3 py-1.5 rounded-xl bg-slate-100 text-xs font-bold">
           Quay lại
@@ -198,11 +203,28 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
     );
   }
 
+  // Biểu cảm của bạn thú theo trạng thái
+  const animalFace: Record<AnimalMood, string> = {
+    waiting: animal.emoji,
+    eating: '😋',
+    happy: '🥳',
+    sad: '😢',
+    angry: '😠',
+  };
+
+  const bubbleText: Record<AnimalMood, string> = {
+    waiting: `Mình đang đói bụng... Cho mình ăn nhé!`,
+    eating: `Nhai nhai... ngon quá!`,
+    happy: `Cảm ơn bạn! Món này tuyệt vời! ❤️`,
+    sad: `Huhu... món này không đúng rồi...`,
+    angry: `Mình vẫn chưa được ăn! Chọn lại đi nào!`,
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4 animate-in fade-in">
       <GameHeader
         title="Bữa Tiệc Sở Thú"
-        emoji="🦁"
+        emoji="🍽️"
         score={score}
         currentRound={currentRound}
         totalRounds={totalQuestions}
@@ -215,94 +237,156 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
         <span className="text-sm font-black text-emerald-700">Đã cho {fedCount} bạn thú ăn</span>
       </div>
 
-      {/* Feeding Goal Banner with Food */}
+      {/* ===== DINNER TABLE SCENE ===== */}
+      <div className="rounded-[2rem] border-4 border-amber-200 bg-gradient-to-b from-rose-50 via-amber-50 to-orange-100 p-5 mb-4 relative overflow-hidden shadow-inner">
+        {/* Wall decoration */}
+        <div className="absolute top-3 right-4 text-2xl opacity-40 select-none">🖼️</div>
+        <div className="absolute top-4 left-4 text-xl opacity-30 select-none">💡</div>
+
+        {/* Guest animal sitting at table */}
+        <div className="flex flex-col items-center pt-2 pb-1">
+          {/* Speech bubble */}
+          <div
+            className={`relative mb-2 px-4 py-2 rounded-2xl text-xs font-bold shadow-md max-w-[85%] text-center transition-all ${
+              mood === 'happy'
+                ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-300'
+                : mood === 'sad' || mood === 'angry'
+                ? 'bg-rose-100 text-rose-800 border-2 border-rose-300'
+                : mood === 'eating'
+                ? 'bg-amber-100 text-amber-800 border-2 border-amber-300'
+                : 'bg-white text-slate-700 border-2 border-slate-200'
+            }`}
+          >
+            {bubbleText[mood]}
+            <div
+              className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] ${
+                mood === 'happy'
+                  ? 'border-t-emerald-100'
+                  : mood === 'sad' || mood === 'angry'
+                  ? 'border-t-rose-100'
+                  : mood === 'eating'
+                  ? 'border-t-amber-100'
+                  : 'border-t-white'
+              }`}
+            />
+          </div>
+
+          {/* Animal with cutlery */}
+          <div className="relative">
+            {/* Fork (left hand) */}
+            <span className="absolute -left-8 top-4 text-2xl select-none" style={{ transform: 'rotate(-25deg)' }}>
+              🍴
+            </span>
+            {/* Animal face with mood animation */}
+            <div
+              className={`text-6xl transition-transform ${
+                mood === 'happy'
+                  ? 'animate-bounce'
+                  : mood === 'eating'
+                  ? 'animate-pulse'
+                  : mood === 'angry'
+                  ? 'animate-shake'
+                  : mood === 'sad'
+                  ? 'animate-shake'
+                  : 'animate-soft-bounce'
+              }`}
+            >
+              {animalFace[mood]}
+            </div>
+            {/* Knife (right hand) */}
+            <span className="absolute -right-8 top-4 text-2xl select-none" style={{ transform: 'rotate(25deg)' }}>
+              🔪
+            </span>
+
+            {/* Emotion sparkles */}
+            {mood === 'happy' && (
+              <>
+                <span className="absolute -top-2 -left-6 text-xl animate-bounce">✨</span>
+                <span className="absolute -top-2 -right-6 text-xl animate-bounce" style={{ animationDelay: '150ms' }}>
+                  ✨
+                </span>
+              </>
+            )}
+            {(mood === 'sad' || mood === 'angry') && (
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xl animate-pulse">
+                {mood === 'sad' ? '💧' : '💢'}
+              </span>
+            )}
+          </div>
+
+          <div className="text-[11px] font-black text-amber-800 mt-1">{animal.name}</div>
+        </div>
+
+        {/* Empty plate in front of the animal */}
+        <div className="flex justify-center mb-1">
+          <div className="relative w-28 h-14 rounded-full bg-white border-4 border-slate-300 shadow-md flex items-center justify-center">
+            {/* Inner plate rim */}
+            <div className="absolute inset-1.5 rounded-full border-2 border-slate-200" />
+            {plateFood ? (
+              <span className="relative text-3xl animate-in zoom-in duration-300">{plateFood}</span>
+            ) : (
+              <span className="relative text-[10px] font-bold text-slate-400">Dĩa trống</span>
+            )}
+          </div>
+        </div>
+
+        {/* Table line */}
+        <div className="h-3 rounded-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 shadow-md mx-2" />
+      </div>
+
+      {/* ===== QUESTION: MEANING TO FIND ===== */}
       <div className="relative overflow-hidden bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 rounded-3xl p-5 text-white text-center shadow-xl mb-4">
         <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/15" />
         <div className="relative">
           <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-100 mb-1">
-            🍽️ Chọn đúng chú thú để cho ăn món <span className="text-lg">{currentFood}</span> này:
+            🍎 Bạn thú muốn ăn món có nghĩa là:
           </div>
           <h3 className="text-2xl font-black flex items-center justify-center gap-2">
             <span className="text-3xl">{currentWord.emoji}</span>
             <span>{currentWord.meaningVi}</span>
           </h3>
           <div className="text-xs mt-2 text-emerald-100 font-medium">
-            Chú thú mang từ tiếng Anh đúng nghĩa sẽ được ăn!
+            Chọn đúng từ tiếng Anh để dọn món ăn vào dĩa nhé!
           </div>
         </div>
       </div>
 
-      {/* Animals Grid — NO ICONS in answer text */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
-        {animals.map((animal) => {
-          const isHappy = animal.isHappy;
-          const isEating = animal.isEating;
-          const isSad = animal.isSad;
+      {/* ===== FOOD DISHES ON THE TABLE (Answer Options — NO ICONS) ===== */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {options.map((opt) => {
+          const isTarget = opt.id === currentWord.id;
+          const showCorrect = (mood === 'eating' || mood === 'happy') && isTarget;
+          const isWrongPick = mood !== 'waiting' && mood !== 'eating' && mood !== 'happy';
+
+          let style =
+            'bg-white border-amber-300 text-amber-950 hover:border-amber-500 hover:bg-amber-50';
+
+          if (showCorrect) {
+            style = 'bg-gradient-to-tr from-emerald-400 to-teal-500 border-emerald-600 text-white ring-4 ring-emerald-200 scale-105';
+          } else if (isWrongPick) {
+            style = 'bg-slate-50 border-slate-200 text-slate-400 opacity-60';
+          }
 
           return (
             <button
-              key={animal.id}
+              key={opt.id}
               type="button"
-              onClick={() => handleFeed(animal)}
-              disabled={isHappy}
-              className={`relative aspect-square rounded-3xl flex flex-col items-center justify-center p-2 border-4 transition-all duration-200 shadow-lg overflow-hidden ${
-                isHappy
-                  ? 'bg-gradient-to-tr from-yellow-300 via-orange-400 to-amber-500 border-orange-300 ring-4 ring-amber-200 scale-105'
-                  : isSad
-                  ? 'bg-gradient-to-tr from-slate-300 to-rose-200 border-rose-400'
-                  : isEating
-                  ? 'bg-gradient-to-tr from-lime-200 to-emerald-300 border-emerald-400 ring-4 ring-lime-200'
-                  : 'bg-gradient-to-tr from-emerald-100 to-teal-100 border-emerald-300 hover:from-emerald-50 hover:to-teal-50 active:scale-95'
-              } ${isHappy ? 'cursor-default' : 'cursor-pointer'}`}
+              onClick={() => handleServe(opt)}
+              disabled={mood === 'eating' || mood === 'happy'}
+              className={`relative p-4 rounded-2xl border-4 font-black text-base transition-all shadow-md flex flex-col items-center justify-center min-h-[70px] ${style} ${
+                mood === 'eating' || mood === 'happy' ? 'cursor-default' : 'active:scale-95 cursor-pointer'
+              }`}
             >
-              {/* Animal face with animation */}
-              <span
-                className={`text-4xl transition-transform ${
-                  isHappy ? 'animate-bounce' : isEating ? 'animate-pulse' : ''
-                }`}
-                style={
-                  isSad
-                    ? { animation: 'shake 0.5s ease-in-out 2' }
-                    : undefined
-                }
-              >
-                {isHappy ? '🥳' : isEating ? '😋' : isSad ? '😢' : animal.animalEmoji}
-              </span>
-
-              {/* Food flying to mouth when eating */}
-              {isEating && (
-                <span className="absolute top-2 right-2 text-2xl animate-bounce">{currentFood}</span>
-              )}
-
-              {/* Heart or broken heart */}
-              {isHappy && (
-                <span className="absolute top-1.5 right-2 text-lg animate-bounce">❤️</span>
-              )}
-              {isSad && (
-                <span className="absolute top-1.5 right-2 text-lg animate-shake">💔</span>
-              )}
-
-              {/* Answer text — NO emoji */}
-              <span
-                className={`text-xs sm:text-sm font-black mt-1.5 capitalize text-center leading-tight ${
-                  isHappy
-                    ? 'text-orange-950'
-                    : isSad
-                    ? 'text-rose-800'
-                    : isEating
-                    ? 'text-emerald-900'
-                    : 'text-emerald-900'
-                }`}
-              >
-                {animal.word.word}
-              </span>
+              {/* Small bowl decoration on top */}
+              <span className="text-lg opacity-70 mb-0.5">🍽️</span>
+              <span className="capitalize text-center leading-tight">{opt.word}</span>
             </button>
           );
         })}
       </div>
 
       <p className="text-center text-[11px] text-slate-400 mt-4 font-medium">
-        💡 Chú thú sẽ nhảy lên ăn ngon lành khi bé chọn đúng — sai thì thú buồn xíu, bé thử lại nhé!
+        💡 Cho đúng món, bạn thú sẽ ăn ngon lành — chọn sai bạn ấy sẽ buồn hoặc giận đấy nhé!
       </p>
 
       {gameResult && (

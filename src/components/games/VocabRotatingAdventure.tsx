@@ -17,7 +17,7 @@ interface VocabRotatingAdventureProps {
   onProfileUpdated: () => void;
 }
 
-export type MiniGameVariant = 'memory_flip' | 'bubble_match' | 'sound_detective' | 'scramble' | 'spelling';
+export type MiniGameVariant = 'bubble_match' | 'sound_detective' | 'scramble' | 'spelling';
 
 const getSkillForVariant = (variant: MiniGameVariant): SkillType => {
   if (variant === 'sound_detective') return 'listening';
@@ -25,16 +25,6 @@ const getSkillForVariant = (variant: MiniGameVariant): SkillType => {
   return 'reading';
 };
 
-interface MiniFlipCard {
-  id: string;
-  pairKey: string;
-  type: 'word' | 'meaning';
-  text: string;
-  sub?: string;
-  emoji?: string;
-  isFlipped: boolean;
-  isMatched: boolean;
-}
 
 // Fisher-Yates Shuffle
 function shuffleList<T>(arr: T[]): T[] {
@@ -61,12 +51,8 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   const totalRounds = isInfinite ? 9999 : questionCount;
 
   const [currentWord, setCurrentWord] = useState<WordItem | null>(null);
-  const [currentVariant, setCurrentVariant] = useState<MiniGameVariant>('memory_flip');
+  const [currentVariant, setCurrentVariant] = useState<MiniGameVariant>('bubble_match');
   const [score, setScore] = useState(0);
-
-  // States for Memory Flip (Lật thẻ mặt chữ và nghĩa)
-  const [memoryCards, setMemoryCards] = useState<MiniFlipCard[]>([]);
-  const [selectedMemoryCards, setSelectedMemoryCards] = useState<MiniFlipCard[]>([]);
 
   // States for Bubble Match & Sound Detective
   const [options, setOptions] = useState<WordItem[]>([]);
@@ -86,8 +72,8 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   const [roundHasError, setRoundHasError] = useState(false);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
 
-  // 5 Mini-Games rotating across questions
-  const VARIANT_CYCLE: MiniGameVariant[] = ['memory_flip', 'bubble_match', 'sound_detective', 'scramble', 'spelling'];
+  // 4 Mini-Games rotating across questions (Memory Flip đã được đưa ra khỏi vòng luân phiên theo yêu cầu)
+  const VARIANT_CYCLE: MiniGameVariant[] = ['bubble_match', 'sound_detective', 'scramble', 'spelling'];
 
   const setupRound = (roundNum: number, queue: WordItem[] = wordQueue) => {
     if (queue.length === 0) return;
@@ -106,47 +92,6 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     const distractors = shuffledOthers.slice(0, 3);
     const roundOptions = shuffleList([target, ...distractors]);
     setOptions(roundOptions);
-
-    // Prepare Memory Flip Cards (2 pairs = 4 cards)
-    const distractorWord = shuffledOthers[0] || target;
-    const cardA: MiniFlipCard = {
-      id: `en-${target.id}`,
-      pairKey: target.id,
-      type: 'word',
-      text: target.word,
-      sub: target.phonetic,
-      isFlipped: false,
-      isMatched: false,
-    };
-    const cardB: MiniFlipCard = {
-      id: `vi-${target.id}`,
-      pairKey: target.id,
-      type: 'meaning',
-      text: target.meaningVi,
-      emoji: target.emoji,
-      isFlipped: false,
-      isMatched: false,
-    };
-    const cardC: MiniFlipCard = {
-      id: `en-${distractorWord.id}`,
-      pairKey: distractorWord.id,
-      type: 'word',
-      text: distractorWord.word,
-      sub: distractorWord.phonetic,
-      isFlipped: false,
-      isMatched: false,
-    };
-    const cardD: MiniFlipCard = {
-      id: `vi-${distractorWord.id}`,
-      pairKey: distractorWord.id,
-      type: 'meaning',
-      text: distractorWord.meaningVi,
-      emoji: distractorWord.emoji,
-      isFlipped: false,
-      isMatched: false,
-    };
-    setMemoryCards(shuffleList([cardA, cardB, cardC, cardD]));
-    setSelectedMemoryCards([]);
 
     // Prepare scramble letters
     const chars = target.word.toLowerCase().split('');
@@ -230,41 +175,6 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     }
   };
 
-  // Memory card click handler
-  const handleMemoryCardClick = (card: MiniFlipCard) => {
-    if (isAnswered || card.isFlipped || card.isMatched || selectedMemoryCards.length >= 2) return;
-
-    const newCards = memoryCards.map((c) => (c.id === card.id ? { ...c, isFlipped: true } : c));
-    setMemoryCards(newCards);
-    const newSelected = [...selectedMemoryCards, card];
-    setSelectedMemoryCards(newSelected);
-
-    if (newSelected.length === 2) {
-      const [c1, c2] = newSelected;
-      if (c1.pairKey === c2.pairKey && c1.type !== c2.type) {
-        // MATCHED!
-        if (c1.pairKey === currentWord?.id) {
-          playWordAudio(currentWord.word, currentWord.audioUrl);
-        }
-        setTimeout(() => {
-          setMemoryCards((prev) => prev.map((c) => (c.pairKey === c1.pairKey ? { ...c, isMatched: true } : c)));
-          setSelectedMemoryCards([]);
-
-          // If target word matched -> win point!
-          if (c1.pairKey === currentWord?.id) {
-            handleAnswerSubmit(true);
-          }
-        }, 500);
-      } else {
-        // MISMATCH
-        setTimeout(() => {
-          setMemoryCards((prev) => prev.map((c) => (!c.isMatched ? { ...c, isFlipped: false } : c)));
-          setSelectedMemoryCards([]);
-        }, 800);
-      }
-    }
-  };
-
   const handleTileClick = (tile: { id: string; char: string; used: boolean }) => {
     if (tile.used || isAnswered || !currentWord) return;
     const nextPlaced = [...placedLetters, tile];
@@ -319,8 +229,6 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
 
   const getVariantTitle = () => {
     switch (currentVariant) {
-      case 'memory_flip':
-        return { name: 'Lật Thẻ Trí Nhớ (Mặt Chữ & Nghĩa)', icon: '🃏', instruction: 'Lật và ghép cặp thẻ: Từ tiếng Anh với Nghĩa tiếng Việt tương ứng!' };
       case 'bubble_match':
         return { name: 'Bong Bóng Bắt Từ', icon: '🎈', instruction: 'Chọn nghĩa tiếng Việt chính xác của từ vựng:' };
       case 'sound_detective':
@@ -362,65 +270,9 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
           <span>Câu {currentRound}: <strong className="text-indigo-700">{variantInfo.name}</strong></span>
         </span>
         <span className="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white font-extrabold text-[11px]">
-          Luân phiên 5 Game 🔄
+          Luân phiên 4 Game 🔄
         </span>
       </div>
-
-      {/* ======================================================== */}
-      {/* VARIANT 0: MEMORY FLIP (Lật thẻ mặt chữ & nghĩa)          */}
-      {/* ======================================================== */}
-      {currentVariant === 'memory_flip' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl p-5 border-4 border-amber-100 shadow-xl text-center">
-            <div className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Mục tiêu vòng này</div>
-            <h3 className="text-2xl font-black text-slate-800 flex items-center justify-center gap-2">
-              <span>{currentWord.emoji}</span>
-              <span className="capitalize">{currentWord.word}</span>
-              <span className="text-sm font-semibold text-slate-400 font-mono">({currentWord.meaningVi})</span>
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">{variantInfo.instruction}</p>
-          </div>
-
-          {/* 2x2 Grid of Flip Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            {memoryCards.map((card) => {
-              const isOpen = card.isFlipped || card.isMatched;
-
-              return (
-                <div
-                  key={card.id}
-                  onClick={() => handleMemoryCardClick(card)}
-                  className={`h-36 rounded-3xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 shadow-md select-none active:scale-95 border-4 ${
-                    card.isMatched
-                      ? 'bg-emerald-50 border-emerald-400 text-emerald-800 ring-4 ring-emerald-100'
-                      : isOpen
-                      ? 'bg-white border-indigo-400 text-indigo-950 shadow-indigo-100 scale-102'
-                      : 'bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 border-white text-white hover:opacity-90'
-                  }`}
-                >
-                  {isOpen ? (
-                    <div className="animate-in zoom-in-75 space-y-1">
-                      {card.emoji && <div className="text-3xl mb-1">{card.emoji}</div>}
-                      <div className="font-black text-lg capitalize">{card.text}</div>
-                      {card.sub && <div className="text-xs font-mono text-indigo-500">{card.sub}</div>}
-                      {card.isMatched && (
-                        <div className="text-[11px] font-bold text-emerald-600 flex items-center justify-center gap-1 mt-1">
-                          <Check size={14} /> Chính xác
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center space-y-1">
-                      <div className="text-4xl animate-pulse">🃏</div>
-                      <div className="text-xs font-black text-white/90 uppercase tracking-wider">Chạm để lật</div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* ======================================================== */}
       {/* VARIANT 1: BUBBLE MATCH (Bong bóng bắt từ)                */}

@@ -5,11 +5,18 @@ import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
 import { soundManager } from '../../services/soundEffects';
+import { Trophy, RotateCcw } from 'lucide-react';
 
 interface CandyLayer {
   id: string;
   emoji: string;
   color: string;
+  shade: string;
+}
+
+interface HighScore {
+  height: number;
+  date: string;
 }
 
 interface CandyBuilderGameProps {
@@ -20,23 +27,25 @@ interface CandyBuilderGameProps {
   onProfileUpdated: () => void;
 }
 
-const CANDY_COLORS = [
-  'from-pink-400 to-rose-500',
-  'from-amber-300 to-orange-400',
-  'from-lime-300 to-green-400',
-  'from-cyan-300 to-blue-400',
-  'from-violet-400 to-purple-500',
-  'from-yellow-300 to-amber-400',
+const CANDY_STYLES = [
+  { color: 'from-pink-400 to-rose-500', shade: '#f43f5e' },
+  { color: 'from-amber-300 to-orange-400', shade: '#f59e0b' },
+  { color: 'from-lime-300 to-green-400', shade: '#84cc16' },
+  { color: 'from-cyan-300 to-blue-400', shade: '#06b6d4' },
+  { color: 'from-violet-400 to-purple-500', shade: '#8b5cf6' },
+  { color: 'from-yellow-300 to-amber-400', shade: '#eab308' },
 ];
 
-const CANDY_EMOJIS = ['🍬', '🍭', '🧁', '🍩', '🍪', '🎂', '🍫', '🍮'];
+const CANDY_EMOJIS = ['🍬', '🍭', '🧁', '🍩', '🍪', '🎂', '🍫', '🍮', '🍡', '🥮'];
+
+const HIGH_SCORE_KEY = 'vibekids_candy_highscores';
 
 /**
- * 🍬 NHÀ THIẾT KẾ KẸO NGỌT (Candy Builder)
- * - Bé trả lời đúng → nhận 1 viên kẹo xếp vào tháp kẹo của mình
- * - Sai → kẹo rung lắc, bé thử lại (không mất gì)
- * - Mục tiêu: xây tháp kẹo cao nhất có thể, mỗi tầng là một chiến thắng
- * - Game thay thế Truy Tìm Kho Báu — vui nhộn, trực quan, phần thưởng liên tục
+ * 🍬 NHÀ THIẾT KẾ KẸO NGỌT (Candy Tower Builder)
+ *
+ * - Bé trả lời đúng → kẹo xếp lên tháp, tháp cao dần thành hình tháp thật
+ * - ❌ Trả lời SAI → tháp đổ sập, xây lại từ đầu (đây chính là thử thách!)
+ * - 🏆 Bảng High Scores: Lưu top 3 tháp cao nhất từng xây
  */
 export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
   words,
@@ -56,11 +65,45 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
   const [isSolved, setIsSolved] = useState(false);
   const [shakeId, setShakeId] = useState<string | null>(null);
   const [tower, setTower] = useState<CandyLayer[]>([]);
+  const [towerCollapsed, setTowerCollapsed] = useState(false);
   const [roundHasError, setRoundHasError] = useState(false);
   const [correctWords, setCorrectWords] = useState<string[]>([]);
   const [wrongWords, setWrongWords] = useState<string[]>([]);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
   const [wordPool, setWordPool] = useState<WordItem[]>([]);
+  const [highScores, setHighScores] = useState<HighScore[]>([]);
+  const [newRecord, setNewRecord] = useState<number | null>(null);
+
+  // Load high scores
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`${HIGH_SCORE_KEY}_${profile.id}`);
+      if (raw) setHighScores(JSON.parse(raw));
+    } catch {
+      setHighScores([]);
+    }
+  }, [profile.id]);
+
+  const saveHighScore = (height: number) => {
+    if (height <= 0) return;
+    try {
+      const raw = localStorage.getItem(`${HIGH_SCORE_KEY}_${profile.id}`);
+      const existing: HighScore[] = raw ? JSON.parse(raw) : [];
+      const updated = [
+        ...existing,
+        { height, date: new Date().toISOString().split('T')[0] },
+      ]
+        .sort((a, b) => b.height - a.height)
+        .slice(0, 3);
+      localStorage.setItem(`${HIGH_SCORE_KEY}_${profile.id}`, JSON.stringify(updated));
+      setHighScores(updated);
+      // Kiểm tra kỷ lục mới
+      const best = existing.length > 0 ? Math.max(...existing.map((h) => h.height)) : 0;
+      if (height > best) setNewRecord(height);
+    } catch {
+      // ignore
+    }
+  };
 
   const shuffle = <T,>(arr: T[]): T[] => {
     const result = [...arr];
@@ -85,8 +128,9 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
     setIsSolved(false);
     setShakeId(null);
     setRoundHasError(false);
+    setTowerCollapsed(false);
     setCurrentRound(roundNum);
-    // ❌ KHÔNG phát âm tự động — tránh lộ đáp án
+    // ❌ Không phát âm tự động
   };
 
   const startNewGame = useCallback(() => {
@@ -98,6 +142,7 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
     setCorrectWords([]);
     setWrongWords([]);
     setGameResult(null);
+    setNewRecord(null);
     setupRound(1, shuffled);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [words]);
@@ -119,14 +164,16 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
       playWordAudio(currentWord.word, currentWord.audioUrl);
       updateWordProgress(profile.id, currentWord.id, currentWord.word, true, 'reading');
 
-      // Thêm 1 viên kẹo vào tháp
+      // Thêm 1 tầng kẹo lên tháp
       const layerIndex = tower.length;
+      const style = CANDY_STYLES[layerIndex % CANDY_STYLES.length];
       setTower((prev) => [
         ...prev,
         {
           id: `layer-${layerIndex}-${Date.now()}`,
           emoji: CANDY_EMOJIS[layerIndex % CANDY_EMOJIS.length],
-          color: CANDY_COLORS[layerIndex % CANDY_COLORS.length],
+          color: style.color,
+          shade: style.shade,
         },
       ]);
 
@@ -136,13 +183,26 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
         } else {
           setupRound(currentRound + 1);
         }
-      }, 1100);
+      }, 950);
     } else {
+      // ❌ SAI → THÁP ĐỔ SẬP
       soundManager.playWrong();
       setShakeId(option.id);
       setRoundHasError(true);
       setWrongWords((prev) => [...prev, currentWord.word]);
       updateWordProgress(profile.id, currentWord.id, currentWord.word, false, 'reading');
+
+      if (tower.length > 0) {
+        setTowerCollapsed(true);
+        // Lưu high score trước khi đổ
+        saveHighScore(tower.length);
+        // Tháp đổ trong 900ms, sau đó reset về 0
+        setTimeout(() => {
+          setTower([]);
+          setTowerCollapsed(false);
+        }, 900);
+      }
+
       setTimeout(() => {
         setShakeId(null);
         setSelected(null);
@@ -151,6 +211,10 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
   };
 
   const finishGame = (lastWasCorrect: boolean) => {
+    // Lưu chiều cao cuối cùng của tháp
+    const finalHeight = tower.length + (lastWasCorrect ? 1 : 0);
+    saveHighScore(finalHeight);
+
     const finalScore = score + (lastWasCorrect ? 10 : 0);
     const correctCount = correctWords.length + (lastWasCorrect ? 1 : 0);
     const totalAttempted = Math.max(1, currentRound);
@@ -173,6 +237,7 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
   };
 
   const handleExitGame = () => {
+    saveHighScore(tower.length);
     const completed = correctWords.length + wrongWords.length;
     if (isInfinite && completed > 0) {
       finishGame(false);
@@ -193,18 +258,6 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
     );
   }
 
-  const towerHeightLabel =
-    tower.length >= 15
-      ? '🏆 Tháp Kẹo Huyền Thoại!'
-      : tower.length >= 10
-      ? '🌟 Tháp Kẹo Siêu Cao!'
-      : tower.length >= 6
-      ? '🍭 Tháp Kẹo Khủng!'
-      : tower.length >= 3
-      ? '🍬 Tháp Kẹo Xinh Xắn'
-      : tower.length > 0
-      ? '🍩 Mới xây tháp kẹo'
-      : '🍬 Chọn đúng để xây viên kẹo đầu tiên!';
 
   return (
     <div className="max-w-2xl mx-auto p-4 animate-in fade-in">
@@ -217,48 +270,106 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
         onExit={handleExitGame}
       />
 
-      {/* Candy Tower Play Area */}
-      <div className="relative rounded-[2rem] border-4 border-pink-200 bg-gradient-to-b from-pink-50 via-rose-50 to-amber-50 p-4 mb-4 overflow-hidden min-h-[220px]">
-        <div className="absolute top-3 left-4 text-xs font-black text-pink-600">
-          🍭 Tháp Kẹo Của Bé ({tower.length} tầng)
+      {/* High Scores Panel */}
+      <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-200 p-3 mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-black text-amber-800 flex items-center gap-1.5">
+            <Trophy size={14} className="text-amber-600" />
+            3 Tháp Kẹo Cao Nhất
+          </span>
+          <span className="text-[10px] font-bold text-amber-600">Cao hiện tại: {tower.length} tầng</span>
         </div>
-        <div className="absolute top-3 right-4 text-xs font-bold text-rose-500">{towerHeightLabel}</div>
-
-        {/* Tower container - stack from bottom up */}
-        <div className="flex flex-col-reverse items-center justify-start gap-1 mt-8 min-h-[160px]">
-          {tower.length === 0 ? (
-            <div className="text-xs text-pink-500 italic py-8">Tháp kẹo đang trống — bé hãy thêm viên kẹo đầu tiên!</div>
-          ) : (
-            tower.map((layer, idx) => (
+        <div className="flex gap-2">
+          {[0, 1, 2].map((i) => {
+            const hs = highScores[i];
+            const medal = ['🥇', '🥈', '🥉'][i];
+            return (
               <div
-                key={layer.id}
-                className={`flex items-center justify-center rounded-2xl bg-gradient-to-r ${layer.color} shadow-lg border-2 border-white/60 animate-bloom`}
-                style={{
-                  width: `${Math.max(46, 78 - idx * 1.2)}%`,
-                  height: '30px',
-                  filter: 'drop-shadow(0 3px 4px rgba(236,72,153,0.25))',
-                }}
+                key={i}
+                className={`flex-1 rounded-xl px-2 py-1.5 text-center border ${
+                  hs
+                    ? 'bg-white border-amber-300 shadow-sm'
+                    : 'bg-slate-50 border-slate-200 border-dashed'
+                }`}
               >
-                <span className="text-lg leading-none">{layer.emoji}</span>
-                <span className="ml-1.5 text-[10px] font-black text-white/95">
-                  {idx + 1}
-                </span>
+                <div className="text-sm">{medal}</div>
+                {hs ? (
+                  <>
+                    <div className="text-base font-black text-amber-700 leading-none">{hs.height}</div>
+                    <div className="text-[9px] text-slate-400 mt-0.5">{hs.date}</div>
+                  </>
+                ) : (
+                  <div className="text-[10px] text-slate-400 font-semibold mt-1">--</div>
+                )}
               </div>
-            ))
+            );
+          })}
+        </div>
+        {newRecord && (
+          <div className="mt-2 text-center text-[11px] font-black text-rose-600 animate-pulse">
+            🎉 KỶ LỤC MỚI: {newRecord} tầng!
+          </div>
+        )}
+      </div>
+
+      {/* ===== CANDY TOWER (Realistic Pyramid Shape) ===== */}
+      <div className="relative rounded-[2rem] border-4 border-pink-200 bg-gradient-to-b from-sky-100 via-pink-50 to-rose-100 p-4 mb-4 overflow-hidden min-h-[250px]">
+        <div className="absolute top-2 left-4 text-xs font-black text-pink-600">
+          🏗️ Tháp Kẹo Của Bé
+        </div>
+        <div className="absolute top-2 right-4 text-xs font-bold text-rose-500">
+          {tower.length > 0 ? `${tower.length} tầng` : 'chưa có tầng nào'}
+        </div>
+
+        {/* Tower built from bottom-up, pyramid narrowing */}
+        <div
+          className={`flex flex-col-reverse items-center gap-0.5 mt-9 min-h-[190px] transition-all duration-500 ${
+            towerCollapsed ? 'opacity-0 translate-y-6 rotate-12' : 'opacity-100'
+          }`}
+        >
+          {tower.length === 0 ? (
+            <div className="text-xs text-pink-400 italic py-10 text-center">
+              {towerCollapsed
+                ? '💥 Tháp đổ rồi! Xây lại từ đầu nhé...'
+                : 'Tháp đang trống — bé hãy thêm tầng đầu tiên!'}
+            </div>
+          ) : (
+            tower.map((layer, idx) => {
+              // Pyramid: base widest, top narrowest — using % width relative to container
+              const widthPct = Math.max(24, 92 - idx * 6);
+              return (
+                <div
+                  key={layer.id}
+                  className={`relative flex items-center justify-center rounded-md bg-gradient-to-b ${layer.color} shadow-md animate-bloom`}
+                  style={{
+                    width: `${widthPct}%`,
+                    height: '22px',
+                    borderBottom: `3px solid ${layer.shade}`,
+                    boxShadow: `0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.6)`,
+                  }}
+                >
+                  <span className="text-sm leading-none">{layer.emoji}</span>
+                  <span className="absolute right-1.5 text-[9px] font-black text-white/80">
+                    {idx + 1}
+                  </span>
+                </div>
+              );
+            })
           )}
         </div>
 
-        {/* Decorative sprinkles */}
-        <div className="absolute bottom-2 left-3 text-lg opacity-40">✨</div>
-        <div className="absolute bottom-3 right-4 text-lg opacity-40">⭐</div>
+        {/* Ground decorative */}
+        <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-pink-300/60 to-transparent" />
+        <div className="absolute bottom-1 left-3 text-xs opacity-50">🌱</div>
+        <div className="absolute bottom-1 right-3 text-xs opacity-50">🌱</div>
       </div>
 
-      {/* Meaning Prompt Banner */}
+      {/* Question Banner */}
       <div className="relative overflow-hidden bg-gradient-to-r from-pink-500 via-rose-500 to-fuchsia-500 rounded-3xl p-5 text-white text-center shadow-xl mb-4">
         <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/15" />
         <div className="relative">
           <div className="text-[11px] font-bold uppercase tracking-wider text-pink-100 mb-1">
-            🎨 Chọn từ tiếng Anh đúng nghĩa để thêm kẹo:
+            🎨 Chọn từ đúng nghĩa để xây tầng kẹo mới:
           </div>
           <h3 className="text-2xl font-black flex items-center justify-center gap-2">
             <span className="text-3xl">{currentWord.emoji}</span>
@@ -303,8 +414,16 @@ export const CandyBuilderGame: React.FC<CandyBuilderGameProps> = ({
       </div>
 
       <p className="text-center text-[11px] text-slate-400 mt-3 font-medium">
-        💡 Mỗi câu đúng xây thêm 1 tầng kẹo — bé xem tháp kẹo của mình cao thêm mỗi lần nhé!
+        💡 Đúng thì tháp cao thêm — sai thì tháp ĐỔ SẬP và xây lại từ đầu. Cẩn thận nhé!
       </p>
+
+      {/* Warning about reset */}
+      {tower.length > 0 && (
+        <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] font-bold text-rose-600">
+          <RotateCcw size={12} />
+          <span>Trả lời sai sẽ mất cả {tower.length} tầng kẹo đấy!</span>
+        </div>
+      )}
 
       {gameResult && (
         <GameVictoryModal
