@@ -200,8 +200,11 @@ interface SpeechRecognitionInstance {
   stop: () => void;
   abort: () => void;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((event: unknown) => void) | null;
   onend: (() => void) | null;
+  onstart?: (() => void) | null;
+  onaudiostart?: (() => void) | null;
+  onspeechend?: (() => void) | null;
 }
 
 export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
@@ -215,6 +218,7 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [speechUnavailable, setSpeechUnavailable] = useState(false);
+  const [recognitionReady, setRecognitionReady] = useState(false);
   const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
   const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
   const [isPlayingUser, setIsPlayingUser] = useState(false);
@@ -227,6 +231,9 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
   const timerRef = useRef<number | null>(null);
   const userAudioPlayerRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const recognitionReadyAtRef = useRef<number>(0);
+  const recognitionErrorRef = useRef<string>('');
+  const recognitionEndedRef = useRef<boolean>(false);
   const recognizedTranscriptRef = useRef<string>('');
 
   // Clean up recorded blob URL on unmount
@@ -270,9 +277,20 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
       if (!saidSomething) {
         // Bé chưa nói gì (hoặc micro không thu được tiếng): không khen, mời thử lại
         starsEarned = 0;
-        feedbackText = speechUnavailable
-          ? '⚠️ Trình duyệt này chưa nhận dạng được giọng nói. Bé vẫn nghe lại được bản ghi âm — hãy thử trên iPad hoặc dùng Chrome nhé!'
-          : '🎤 Bé chưa nói gì cả. Thử nói to và rõ hơn nhé!';
+        const errType = recognitionErrorRef.current;
+        if (errType === 'no-speech') {
+          feedbackText = '🎤 Máy chưa nghe thấy giọng bé. Bé nói TO và RÕ hơn, sát micro hơn nhé!';
+        } else if (errType === 'network') {
+          feedbackText = '📡 Mất kết nối Internet nên chưa nhận dạng được. Kiểm tra mạng rồi thử lại nhé!';
+        } else if (errType === 'not-allowed' || errType === 'service-not-allowed') {
+          feedbackText = '🔒 Trình duyệt chưa được cấp quyền Micro. Bé bấm vào ổ khoá 🔒 trên thanh địa chỉ để bật cho phép nhé!';
+        } else if (errType === 'audio-capture') {
+          feedbackText = '🎙️ Không tìm thấy Micro. Kiểm tra lại micro của máy nhé!';
+        } else if (speechUnavailable) {
+          feedbackText = '⚠️ Trình duyệt này chưa hỗ trợ nhận dạng giọng nói. Bé vẫn nghe lại được bản ghi âm — hãy thử trên iPad hoặc Chrome nhé!';
+        } else {
+          feedbackText = '🎤 Bé chưa nói gì cả. Thử nói to và rõ hơn nhé!';
+        }
         feedbackLevel = 'encourage';
       } else if (score >= 90) {
         starsEarned = 3;
@@ -386,14 +404,20 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
         };
 
         if (recognition) {
-          // Một số trình duyệt (macOS Chrome/Safari) bắn 'onend' TRƯỚC 'onresult'.
-          // Đợi thêm 400ms sau onend để chắc chắn onresult kịp gán transcript.
+          // Gắn onend MỚI (ghi đè handler cũ) để chấm điểm sau khi recognition xong
           recognition.onend = () => {
+            // Một số trình duyệt bắn 'onend' TRƯỚC 'onresult' → chờ thêm 400ms
             window.setTimeout(() => {
               scoreNow();
             }, 400);
           };
-          // Dự phòng tuyệt đối: chấm sau 3000ms dù không nhận được onend
+          // Yêu cầu recognition dừng & trả kết quả cuối
+          try {
+            recognition.stop();
+          } catch {
+            // recognition có thể đã tự dừng → onend sẽ vẫn bắn
+          }
+          // Dự phòng tuyệt đối: chấm sau 3000ms dù onend không bắn
           window.setTimeout(() => {
             scoreNow();
           }, 3000);
@@ -422,9 +446,31 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
             }
           };
 
-          recognition.onerror = () => {
-            // Không ngắt thu âm nếu nhận diện gặp lỗi mạng
-            setSpeechUnavailable(true);
+          // ⚠️ macOS/Chrome cần ~1-2s để khởi động speech service (tải model ngôn ngữ).
+          // Nếu bé nói ngay lúc bấm mic, âm thanh rơi vào lúc recognition CHƯA sẵn sàng → mất trắng.
+          // Ghi nhận thời điểm recognition thực sự sẵn sàng để cảnh báo / tính lại thời gian thu.
+          recognition.onstart = () => {
+            recognitionReadyAtRef.current = Date.now();
+            setRecognitionReady(true);
+          };
+          recognition.onaudiostart = () => {
+            recognitionReadyAtRef.current = Date.now();
+            setRecognitionReady(true);
+          };
+
+          recognition.onerror = (event) => {
+            // event.error có thể là: 'no-speech', 'network', 'not-allowed', 'aborted', 'service-not-allowed'
+            const errType = (event as unknown as { error?: string })?.error;
+            recognitionErrorRef.current = errType || 'unknown';
+            if (errType !== 'no-speech' && errType !== 'aborted') {
+              setSpeechUnavailable(true);
+            }
+          };
+
+          recognition.onend = () => {
+            if (recognitionRef.current) {
+              recognitionEndedRef.current = true;
+            }
           };
 
           recognition.start();
@@ -441,13 +487,18 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingSeconds(0);
+      setRecognitionReady(false);
+      recognitionErrorRef.current = '';
+      recognitionEndedRef.current = false;
 
-      // Đếm ngược tối đa 4 giây rồi tự dừng
+      // Đếm ngược tối đa 6 giây rồi tự dừng.
+      // Tăng từ 4s → 6s vì macOS/Chrome cần ~1-2s khởi động speech service;
+      // 4s cũ chỉ còn ~2s thu thật → bé nói không kịp.
       let sec = 0;
       timerRef.current = window.setInterval(() => {
         sec++;
         setRecordingSeconds(sec);
-        if (sec >= 4) {
+        if (sec >= 6) {
           stopRecording();
         }
       }, 1000);
@@ -461,18 +512,14 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {
-        // ignore
-      }
-    }
     setIsRecording(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    // ⚠️ KHÔNG gọi recognition.stop() ở đây.
+    // MediaRecorder.onstop sẽ tự stop() recognition sau khi đã đăng ký xong
+    // handler chấm điểm — tránh race "stop trước khi kịp gắn onend/onresult".
   };
 
   // Nghe lại giọng của bé (Tương thích 100% iOS Safari với Web Audio API fallback)
@@ -598,10 +645,14 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
                 {isRecording ? <Square size={18} /> : <Mic size={22} />}
               </button>
               <span className="text-xs font-black text-slate-800">
-                {isRecording ? `Đang thu... ${4 - recordingSeconds}s` : '2. Thu Âm Giọng Bé'}
+                {isRecording ? `Đang thu... ${Math.max(0, 6 - recordingSeconds)}s` : '2. Thu Âm Giọng Bé'}
               </span>
-              <span className="text-[10px] text-purple-600 font-semibold">
-                {isRecording ? 'Bấm nút vuông để dừng' : 'Chạm Mic để nói'}
+              <span className="text-[10px] font-semibold text-purple-600">
+                {isRecording
+                  ? recognitionReady
+                    ? '🎤 Micro sẵn sàng — bé nói đi!'
+                    : '⏳ Đang bật micro... bé chờ 1 giây nhé'
+                  : 'Chạm Mic để nói'}
               </span>
             </>
           ) : (
