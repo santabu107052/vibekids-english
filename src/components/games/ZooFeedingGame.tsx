@@ -216,7 +216,9 @@ const AnimalHead: React.FC<{ animal: GuestAnimal; mood: AnimalMood }> = ({ anima
   };
 
   return (
-    <svg viewBox="0 0 100 100" className="w-[78px] h-[78px] overflow-visible">
+    // viewBox shifted so head ellipse centre (50,52) sits exactly at the card centre (50,50),
+    // ears above are still visible thanks to overflow-visible + wider viewBox height
+    <svg viewBox="0 -12 100 118" className="w-[86px] h-[86px] overflow-visible">
       {renderEars()}
       {/* Đầu */}
       <ellipse cx="50" cy="52" rx="30" ry="30" fill={furColor} stroke={furDark} strokeWidth="2.4" />
@@ -468,83 +470,93 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
           className="relative flex justify-center"
           style={{ filter: 'drop-shadow(0 6px 10px rgba(120,53,15,0.18))' }}
         >
-          <svg viewBox="0 0 320 240" className="w-full max-w-[340px] h-auto">
+          <svg viewBox="0 0 320 280" className="w-full max-w-[340px] h-auto">
             {/* ---------- BACKGROUND: floor ---------- */}
-            <rect x="0" y="196" width="320" height="44" fill="#fde68a" opacity="0.55" />
-            <rect x="0" y="196" width="320" height="4" fill="#d97706" opacity="0.35" />
+            <rect x="0" y="214" width="320" height="66" fill="#fde68a" opacity="0.5" />
+            <rect x="0" y="214" width="320" height="4" fill="#d97706" opacity="0.3" />
 
             {/* ---------- CHAIR BACK (behind animal) ---------- */}
-            <rect x="112" y="52" width="96" height="120" rx="12" fill="#b45309" opacity="0.85" />
-            <rect x="118" y="58" width="84" height="108" rx="9" fill="#d97706" opacity="0.55" />
+            <rect x="114" y="56" width="92" height="120" rx="12" fill="#b45309" opacity="0.8" />
+            <rect x="120" y="62" width="80" height="108" rx="9" fill="#d97706" opacity="0.45" />
 
             {/* ---------- ANIMAL BODY (SHARED) ---------- */}
-            {/* Body */}
-            <ellipse cx="160" cy="150" rx="46" ry="40" fill={animal.furColor} stroke={animal.furDark} strokeWidth="2.6" />
-            {/* Belly */}
-            <ellipse cx="160" cy="158" rx="30" ry="26" fill={animal.accent} opacity="0.55" />
+            <ellipse cx="160" cy="168" rx="48" ry="42" fill={animal.furColor} stroke={animal.furDark} strokeWidth="2.6" />
+            <ellipse cx="160" cy="176" rx="31" ry="27" fill={animal.accent} opacity="0.5" />
 
-            {/* ---------- ARMS (SHARED) ---------- */}
-            {/* Left arm holding fork */}
-            <path d="M 122 140 Q 100 148 96 170" stroke={animal.furColor} strokeWidth="15" fill="none" strokeLinecap="round" />
-            <path d="M 122 140 Q 100 148 96 170" stroke={animal.furDark} strokeWidth="15" fill="none" strokeLinecap="round" opacity="0.18" />
-            {/* Right arm holding knife */}
-            <path d="M 198 140 Q 220 148 224 170" stroke={animal.furColor} strokeWidth="15" fill="none" strokeLinecap="round" />
-            <path d="M 198 140 Q 220 148 224 170" stroke={animal.furDark} strokeWidth="15" fill="none" strokeLinecap="round" opacity="0.18" />
+            {/* ---------- ARMS (SHARED) — drawn toward viewer ---------- */}
+            {/* Left arm: shoulder -> elbow -> hand resting on table left */}
+            <path d="M 120 156 Q 96 176 78 206" stroke={animal.furColor} strokeWidth="17" fill="none" strokeLinecap="round" />
+            <path d="M 120 156 Q 96 176 78 206" stroke={animal.furDark} strokeWidth="17" fill="none" strokeLinecap="round" opacity="0.15" />
+            {/* Right arm */}
+            <path d="M 200 156 Q 224 176 242 206" stroke={animal.furColor} strokeWidth="17" fill="none" strokeLinecap="round" />
+            <path d="M 200 156 Q 224 176 242 206" stroke={animal.furDark} strokeWidth="17" fill="none" strokeLinecap="round" opacity="0.15" />
+            {/* Hands (paws) */}
+            <ellipse cx="78" cy="208" rx="12" ry="10" fill={animal.furColor} stroke={animal.furDark} strokeWidth="2" />
+            <ellipse cx="242" cy="208" rx="12" ry="10" fill={animal.furColor} stroke={animal.furDark} strokeWidth="2" />
 
-            {/* ---------- CUTLERY IN HANDS ---------- */}
-            {/* Fork (left) */}
-            <g transform="translate(96,186) rotate(12)">
-              <rect x="-2" y="0" width="4" height="26" rx="2" fill="#94a3b8" />
-              <path d="M -6 0 L -6 -12 M 0 0 L 0 -13 M 6 0 L 6 -12" stroke="#cbd5e1" strokeWidth="2.6" strokeLinecap="round" />
-              <rect x="-7" y="-2" width="14" height="4" rx="2" fill="#cbd5e1" />
+            {/* ---------- TABLE ---------- */}
+            {/* Table legs (LONGER, drawn first so tabletop covers top) */}
+            <rect x="44" y="232" width="12" height="40" rx="3" fill="#7c2d12" />
+            <rect x="264" y="232" width="12" height="40" rx="3" fill="#7c2d12" />
+            <rect x="44" y="232" width="4" height="40" fill="#9a3412" opacity="0.6" />
+            <rect x="264" y="232" width="4" height="40" fill="#9a3412" opacity="0.6" />
+            {/* Tabletop surface (ellipse) */}
+            <ellipse cx="160" cy="226" rx="138" ry="18" fill="#c2410c" />
+            <ellipse cx="160" cy="221" rx="138" ry="18" fill="#f97316" />
+            {/* Tabletop front edge */}
+            <path d="M 22 221 L 22 236 Q 160 260 298 236 L 298 221 Q 160 243 22 221 Z" fill="#b45309" />
+            <path d="M 22 221 Q 160 243 298 221" stroke="#92400e" strokeWidth="1.6" fill="none" opacity="0.55" />
+
+            {/* ---------- CUTLERY (IN HANDS, ABOVE TABLE) ---------- */}
+            {/* FORK (left hand) — pointing up, clearly visible */}
+            <g transform="translate(78,196) rotate(-18)">
+              {/* handle */}
+              <rect x="-2.6" y="-10" width="5.2" height="30" rx="2.6" fill="#94a3b8" />
+              <rect x="-1.4" y="-10" width="1.6" height="30" fill="#e2e8f0" opacity="0.8" />
+              {/* head/plate */}
+              <rect x="-7" y="-14" width="14" height="5" rx="2.4" fill="#cbd5e1" />
+              {/* tines */}
+              <rect x="-6.4" y="-24" width="2.4" height="11" rx="1.2" fill="#cbd5e1" />
+              <rect x="-1.2" y="-25" width="2.4" height="12" rx="1.2" fill="#cbd5e1" />
+              <rect x="4" y="-24" width="2.4" height="11" rx="1.2" fill="#cbd5e1" />
             </g>
-            {/* Knife (right) */}
-            <g transform="translate(224,186) rotate(-12)">
-              <rect x="-2" y="0" width="4" height="26" rx="2" fill="#94a3b8" />
-              <path d="M -3 -18 L 3 -18 L 3 0 L -3 0 Z" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="1.2" />
+            {/* SPOON (right hand) — big bowl, very recognisable */}
+            <g transform="translate(242,196) rotate(18)">
+              {/* handle */}
+              <rect x="-2.6" y="-10" width="5.2" height="30" rx="2.6" fill="#94a3b8" />
+              <rect x="-1.4" y="-10" width="1.6" height="30" fill="#e2e8f0" opacity="0.8" />
+              {/* spoon bowl */}
+              <ellipse cx="0" cy="-17" rx="7.5" ry="10" fill="#dbe3ea" stroke="#94a3b8" strokeWidth="1.6" />
+              <ellipse cx="-2" cy="-19" rx="3.4" ry="5" fill="#f8fafc" opacity="0.9" />
             </g>
 
-            {/* ---------- TABLE (front, drawn over body bottom) ---------- */}
-            {/* Table top surface */}
-            <ellipse cx="160" cy="206" rx="132" ry="16" fill="#c2410c" />
-            <ellipse cx="160" cy="202" rx="132" ry="16" fill="#ea580c" />
-            {/* Table front edge */}
-            <path d="M 28 202 L 28 226 Q 160 250 292 226 L 292 202 Q 160 220 28 202 Z" fill="#9a3412" />
-            <path d="M 28 202 Q 160 220 292 202" stroke="#7c2d12" strokeWidth="1.5" fill="none" opacity="0.5" />
-            {/* Table legs */}
-            <rect x="46" y="224" width="10" height="16" rx="3" fill="#7c2d12" />
-            <rect x="264" y="224" width="10" height="16" rx="3" fill="#7c2d12" />
-
-            {/* ---------- PLATE (empty, drawn on table) ---------- */}
+            {/* ---------- PLATE (on table, in front of animal) ---------- */}
             <g>
-              {/* Plate shadow */}
-              <ellipse cx="160" cy="203" rx="52" ry="15" fill="#7c2d12" opacity="0.28" />
-              {/* Plate outer rim */}
-              <ellipse cx="160" cy="199" rx="52" ry="15" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
-              {/* Plate inner well */}
-              <ellipse cx="160" cy="199" rx="38" ry="10.5" fill="#e2e8f0" />
-              <ellipse cx="160" cy="199" rx="34" ry="9" fill="#f1f5f9" />
-              {/* Food on plate when served */}
+              <ellipse cx="160" cy="234" rx="55" ry="16" fill="#7c2d12" opacity="0.28" />
+              <ellipse cx="160" cy="230" rx="55" ry="16" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
+              <ellipse cx="160" cy="230" rx="40" ry="11" fill="#e2e8f0" />
+              <ellipse cx="160" cy="230" rx="35" ry="9.5" fill="#f1f5f9" />
               {plateFood ? (
                 <text
                   x="160"
-                  y="205"
+                  y="237"
                   textAnchor="middle"
-                  fontSize="22"
+                  fontSize="23"
                   className="animate-in zoom-in duration-300"
                 >
                   {plateFood}
                 </text>
               ) : (
-                <text x="160" y="203" textAnchor="middle" fontSize="8" fill="#94a3b8" fontWeight="700">
+                <text x="160" y="233" textAnchor="middle" fontSize="8" fill="#94a3b8" fontWeight="700">
                   dĩa trống
                 </text>
               )}
             </g>
 
             {/* ---------- ANIMAL HEAD (ONLY THIS CHANGES PER ROUND) ---------- */}
+            {/* Centred on body axis x=160, neck overlaps body top so head is attached */}
             <g
-              transform="translate(110, 34)"
+              transform="translate(110, 62)"
               className={
                 mood === 'happy'
                   ? 'animate-bounce'
@@ -554,9 +566,9 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
                   ? 'animate-shake'
                   : 'animate-soft-bounce'
               }
-              style={{ transformOrigin: 'center' }}
+              style={{ transformOrigin: '50px 50px' }}
             >
-              <foreignObject x="0" y="0" width="100" height="100">
+              <foreignObject x="-4" y="-18" width="108" height="124">
                 <div className="flex items-center justify-center w-full h-full">
                   <AnimalHead animal={animal} mood={mood} />
                 </div>
@@ -566,13 +578,13 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
             {/* ---------- EMOTION EFFECTS ---------- */}
             {mood === 'happy' && (
               <>
-                <text x="96" y="66" fontSize="16" className="animate-bounce">✨</text>
-                <text x="216" y="66" fontSize="16" className="animate-bounce">✨</text>
-                <text x="160" y="30" fontSize="18" className="animate-bounce">❤️</text>
+                <text x="94" y="92" fontSize="15" className="animate-bounce">✨</text>
+                <text x="212" y="92" fontSize="15" className="animate-bounce">✨</text>
+                <text x="160" y="58" fontSize="17" className="animate-bounce">❤️</text>
               </>
             )}
             {(mood === 'sad' || mood === 'angry') && (
-              <text x="160" y="32" fontSize="18" className="animate-pulse" textAnchor="middle">
+              <text x="160" y="60" fontSize="17" className="animate-pulse" textAnchor="middle">
                 {mood === 'sad' ? '💧' : '💢'}
               </text>
             )}
