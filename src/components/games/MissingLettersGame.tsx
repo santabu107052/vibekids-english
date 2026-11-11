@@ -76,7 +76,20 @@ export const MissingLettersGame: React.FC<MissingLettersGameProps> = ({
     if (candidates.length === 0) {
       candidates = chars.map((_, i) => i);
     }
-    const hiddenIdx = shuffle(candidates).slice(0, Math.min(hideCount, candidates.length));
+    // QUAN TRỌNG: không ẩn 2 ô có cùng một chữ cái (vd "happy" ẩn cả 2 chữ "p"),
+    // vì bàn phím chỉ có 1 nút cho mỗi chữ — bé không thể điền ô thứ hai.
+    const pickHidden: number[] = [];
+    const usedLetters = new Set<string>();
+    for (const idx of shuffle(candidates)) {
+      if (pickHidden.length >= hideCount) break;
+      const letter = chars[idx];
+      if (usedLetters.has(letter)) continue;
+      usedLetters.add(letter);
+      pickHidden.push(idx);
+    }
+    // Nếu từ không đủ chữ cái khác nhau, chấp nhận cho phép lặp
+    if (pickHidden.length === 0) pickHidden.push(candidates[0]);
+    const hiddenIdx = pickHidden.sort((a, b) => a - b);
 
     const masked = chars.map((ch, i) => ({
       char: ch,
@@ -118,8 +131,14 @@ export const MissingLettersGame: React.FC<MissingLettersGameProps> = ({
   const handleKey = (key: string) => {
     if (!currentWord || isSolved) return;
 
-    const slot = activeSlot;
-    if (slot < 0 || !maskedChars[slot]?.isHidden) return;
+    // Nếu ô đang chọn đã được điền rồi, tự nhảy sang ô trống kế tiếp
+    let slot = activeSlot;
+    if (!maskedChars[slot]?.isHidden || maskedChars[slot]?.filled) {
+      const emptySlot = maskedChars.findIndex((c) => c.isHidden && !c.filled);
+      if (emptySlot === -1) return;
+      slot = emptySlot;
+      setActiveSlot(emptySlot);
+    }
 
     const isCorrect = maskedChars[slot].char === key;
 
@@ -254,13 +273,16 @@ export const MissingLettersGame: React.FC<MissingLettersGameProps> = ({
           return (
             <div
               key={i}
+              onClick={() => {
+                if (!isSolved && c.isHidden && !c.filled) setActiveSlot(i);
+              }}
               className={`flex items-center justify-center rounded-2xl border-3 font-black transition-all ${
                 c.isHidden
                   ? isSolved
                     ? 'w-11 h-14 sm:w-12 sm:h-16 text-2xl bg-emerald-500 border-emerald-600 text-white shadow-md'
                     : isActive
-                    ? 'w-11 h-14 sm:w-12 sm:h-16 text-2xl bg-amber-50 border-amber-500 text-slate-900 ring-4 ring-amber-200 animate-pulse'
-                    : 'w-11 h-14 sm:w-12 sm:h-16 text-2xl bg-white border-indigo-300 text-slate-900'
+                    ? 'w-11 h-14 sm:w-12 sm:h-16 text-2xl bg-amber-50 border-amber-500 text-slate-900 ring-4 ring-amber-200 animate-pulse cursor-pointer'
+                    : 'w-11 h-14 sm:w-12 sm:h-16 text-2xl bg-white border-indigo-300 text-slate-900 cursor-pointer hover:border-indigo-400'
                   : 'w-9 h-12 sm:w-10 sm:h-14 text-xl bg-slate-100 border-slate-200 text-slate-500'
               }`}
             >
@@ -274,7 +296,10 @@ export const MissingLettersGame: React.FC<MissingLettersGameProps> = ({
       <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mb-3">
         {distractorKeys.map((key) => {
           const isShaking = shakeKey === key;
-          const used = maskedChars.some((c) => c.isHidden && c.filled === key);
+          // Chỉ khoá nút khi TẤT CẢ ô mang chữ cái này đã được điền
+          const slotsForLetter = maskedChars.filter((c) => c.isHidden && c.char === key);
+          const used =
+            slotsForLetter.length > 0 && slotsForLetter.every((c) => c.filled === key);
           return (
             <button
               key={key}
