@@ -61,7 +61,7 @@ export function useGameRouter(): GameRouterHook {
         targetGame: 'vocab_adventure',
         title: mode === 'review' ? 'Ôn Từ Đã Học' : mode === 'new' ? 'Học Từ Mới' : 'Vừa Ôn Vừa Học',
         icon: mode === 'review' ? '🔄' : mode === 'new' ? '✨' : '🎯',
-        badge: 'Luân phiên 5 game',
+        badge: 'Luân phiên 11 game',
         fixedMode: mode,
       });
     },
