@@ -35,47 +35,125 @@ interface ScoreResult {
 }
 
 /**
- * Thuật toán tính độ tương đồng chuỗi Levenshtein Distance (0 - 100%)
+ * Chuẩn hoá text trước khi so khớp:
+ * - bỏ dấu câu, đưa về chữ thường
+ * - bỏ mạo từ ("a", "an", "the") — bé nói "the cat" phải tính là đúng "cat"
+ * - gộp khoảng trắng
+ */
+function normalizeWord(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s']/g, ' ')
+    .replace(/\b(a|an|the)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Nhóm phụ âm/nguyên âm dễ lẫn với người Việt học tiếng Anh.
+ * Nếu bé lẫn trong cùng nhóm thì phạt nặng hơn so với khác nhóm.
+ */
+const CONFUSABLE_GROUPS: string[][] = [
+  ['th', 'tr', 't', 'd'],
+  ['v', 'w', 'f'],
+  ['s', 'sh', 'z', 'zh'],
+  ['ch', 'tr', 'j'],
+  ['l', 'r', 'n'],
+  ['b', 'p'],
+  ['g', 'k', 'c', 'q'],
+  ['m', 'n'],
+  ['i', 'ee', 'ea', 'y'],
+  ['u', 'oo', 'ou'],
+  ['e', 'a'],
+];
+
+function sameConfusableGroup(x: string, y: string): boolean {
+  return CONFUSABLE_GROUPS.some((g) => g.includes(x) && g.includes(y));
+}
+
+/**
+ * Khoảng cách âm vị — trả về số "cú sốc" cần để biến a thành b.
+ * Khác Levenshtein ở chỗ: thay thế 2 ký tự thuộc cùng nhóm dễ lẫn
+ * (th↔tr, v↔w, b↔p) bị phạt NẶNG hơn thay thế khác nhóm, vì đó là
+ * đúng lỗi phát âm mà giáo viên cần bắt.
+ */
+function phonemeDistance(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i * 1.15; // xoá âm
+  for (let j = 0; j <= n; j++) dp[0][j] = j * 1.15; // chèn âm
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const ca = a[i - 1];
+      const cb = b[j - 1];
+      let subCost: number;
+      if (ca === cb) subCost = 0;
+      else if (sameConfusableGroup(ca, cb)) subCost = 1.6; // lẫn âm dễ nhầm → phạt nặng
+      else subCost = 1.0;
+
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1.15,
+        dp[i][j - 1] + 1.15,
+        dp[i - 1][j - 1] + subCost
+      );
+    }
+  }
+  return dp[m][n];
+}
+
+/**
+ * Tính điểm phát âm (0–100).
+ *
+ * Khác bản cũ:
+ * - bỏ mạo từ trước khi so
+ * - KHÔNG còn tặng điểm khi một chuỗi chứa chuỗi kia (trước đây nói
+ *   nửa từ vẫn được ~92%)
+ * - phạt nặng khi lẫn phụ âm/nguyên âm dễ nhầm
  */
 export function calculateSimilarityScore(recognized: string, target: string): number {
-  const a = recognized.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
-  const b = target.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+  const a = normalizeWord(recognized);
+  const b = normalizeWord(target);
 
   if (!a.length || !b.length) return 0;
   if (a === b) return 100;
 
-  // Nếu từ nhận diện được chứa trọn vẹn từ đích hoặc ngược lại
-  if (a.includes(b) || b.includes(a)) {
-    const minLen = Math.min(a.length, b.length);
-    const maxLen = Math.max(a.length, b.length);
-    return Math.round((minLen / maxLen) * 92);
-  }
-
-  const matrix: number[][] = [];
-  for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
-  }
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
-
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1, // thay thế
-          matrix[i][j - 1] + 1,     // chèn
-          matrix[i - 1][j] + 1      // xoá
-        );
+  // Nếu bé nói cả câu, lấy cụm khớp nhất với từ đích.
+  // Dùng vòng lặp trên từng token (không đệ quy) để tránh gọi lại chính nó.
+  const words = a.split(' ');
+  if (words.length > 1) {
+    const bLen = b.length;
+    const longestWord = b.includes(' ')
+      ? b.split(' ').length
+      : 1;
+    let best = 0;
+    for (let i = 0; i < words.length; i++) {
+      // thử cụm 1, 2, 3 từ liên tiếp
+      for (let span = 1; span <= Math.min(3, bLen + 1); span++) {
+        if (i + span > words.length) break;
+        const candidate = words.slice(i, i + span).join(' ');
+        const maxLen = Math.max(candidate.length, bLen);
+        const dist = phonemeDistance(candidate, b);
+        const sc = Math.max(0, Math.round(((maxLen * 1.15 - dist) / (maxLen * 1.15)) * 100));
+        if (sc > best) best = sc;
       }
     }
+    void longestWord;
+    return best;
   }
 
-  const distance = matrix[b.length][a.length];
   const maxLen = Math.max(a.length, b.length);
-  return Math.max(0, Math.round(((maxLen - distance) / maxLen) * 100));
+  const dist = phonemeDistance(a, b);
+  const raw = ((maxLen * 1.15 - dist) / (maxLen * 1.15)) * 100;
+  return Math.max(0, Math.round(raw));
+}
+
+/** Xếp hạng sao theo điểm */
+export function starsForScore(score: number): number {
+  if (score >= 90) return 3;
+  if (score >= 75) return 2;
+  return 1;
 }
 
 /**
@@ -136,6 +214,7 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
   onClose,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
+  const [speechUnavailable, setSpeechUnavailable] = useState(false);
   const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
   const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
   const [isPlayingUser, setIsPlayingUser] = useState(false);
@@ -180,23 +259,27 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
       let score = 0;
       const cleanTranscript = transcript.trim();
 
-      if (cleanTranscript.length > 0) {
-        score = calculateSimilarityScore(cleanTranscript, word);
-      } else {
-        // Fallback khích lệ nếu microphone không chuyển thành văn bản (chất lượng âm thanh môi trường)
-        score = Math.floor(Math.random() * 16) + 72; // 72 - 87 điểm
-      }
+      // KHÔNG còn điểm ngẫu nhiên. Bé không nói gì thì được 0 điểm thật.
+      const saidSomething = cleanTranscript.length > 0;
+      score = saidSomething ? calculateSimilarityScore(cleanTranscript, word) : 0;
 
       let starsEarned = 1;
       let feedbackText = '💪 Cố lên bé ơi! Nghe lại mẫu và thử lại nhé!';
       let feedbackLevel: 'perfect' | 'good' | 'encourage' = 'encourage';
 
-      if (score >= 85) {
+      if (!saidSomething) {
+        // Bé chưa nói gì (hoặc micro không thu được tiếng): không khen, mời thử lại
+        starsEarned = 0;
+        feedbackText = speechUnavailable
+          ? '⚠️ Trình duyệt này chưa nhận dạng được giọng nói. Bé vẫn nghe lại được bản ghi âm — hãy thử trên iPad hoặc dùng Chrome nhé!'
+          : '🎤 Bé chưa nói gì cả. Thử nói to và rõ hơn nhé!';
+        feedbackLevel = 'encourage';
+      } else if (score >= 90) {
         starsEarned = 3;
         feedbackText = '🌟 Xuất sắc! Phát âm như người bản xứ!';
         feedbackLevel = 'perfect';
         soundManager.playVictory();
-      } else if (score >= 60) {
+      } else if (score >= 75) {
         starsEarned = 2;
         feedbackText = '👏 Rất tốt! Bé phát âm gần chuẩn rồi!';
         feedbackLevel = 'good';
@@ -216,13 +299,13 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
         recognizedText: cleanTranscript || word,
       });
 
-      // Thưởng sao cho profile bé
-      if (profile) {
+      // Thưởng sao cho profile bé (không thưởng khi bé chưa nói gì)
+      if (profile && starsEarned > 0) {
         addStarsToProfile(profile.id, starsEarned);
         onProfileUpdated?.();
       }
     },
-    [word, profile, onProfileUpdated]
+    [word, profile, onProfileUpdated, speechUnavailable]
   );
 
   // Bắt đầu thu âm giọng của bé
@@ -231,6 +314,34 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
     setEvaluation(null);
     recognizedTranscriptRef.current = '';
     audioChunksRef.current = [];
+
+    // Dọn bản ghi âm cũ: trước đây không dọn nên nút "ghi âm lại" bị kẹt
+    if (userAudioPlayerRef.current) {
+      try {
+        userAudioPlayerRef.current.pause();
+      } catch {
+        /* ignore */
+      }
+      userAudioPlayerRef.current = null;
+    }
+    setIsPlayingUser(false);
+    if (recordedAudioUrl) {
+      URL.revokeObjectURL(recordedAudioUrl);
+      setRecordedAudioUrl(null);
+    }
+    setRecordedAudioBlob(null);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch {
+        /* ignore */
+      }
+      recognitionRef.current = null;
+    }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -255,11 +366,41 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
         const url = URL.createObjectURL(audioBlob);
         setRecordedAudioUrl(url);
 
-        // Đánh giá phát âm
-        evaluatePronunciation(recognizedTranscriptRef.current);
+        // ⚠️ QUAN TRỌNG: Web Speech Recognition trả kết quả BẤT ĐỒNG BỘ qua server
+        // (thường 300ms–2s sau khi dừng). Trên macOS/Chrome, onstop của MediaRecorder
+        // chạy TRƯỚC khi onresult về → nếu chấm điểm ngay sẽ luôn ra 0/100 dù bé có nói.
+        // => Chờ tối đa 2.5s cho tới khi có transcript (hoặc biết chắc recognition xong).
+        const streamRef = stream;
+        const recognition = recognitionRef.current;
+        let scored = false;
 
-        // Giải phóng mic
-        stream.getTracks().forEach((track) => track.stop());
+        // Chấm điểm đúng 1 lần duy nhất
+        const scoreNow = () => {
+          if (scored) return;
+          scored = true;
+          evaluatePronunciation(recognizedTranscriptRef.current);
+          // Giải phóng mic + reset tham chiếu để lần "thu lại" không bị kẹt
+          streamRef.getTracks().forEach((track) => track.stop());
+          mediaRecorderRef.current = null;
+          recognitionRef.current = null;
+        };
+
+        if (recognition) {
+          // Một số trình duyệt (macOS Chrome/Safari) bắn 'onend' TRƯỚC 'onresult'.
+          // Đợi thêm 400ms sau onend để chắc chắn onresult kịp gán transcript.
+          recognition.onend = () => {
+            window.setTimeout(() => {
+              scoreNow();
+            }, 400);
+          };
+          // Dự phòng tuyệt đối: chấm sau 3000ms dù không nhận được onend
+          window.setTimeout(() => {
+            scoreNow();
+          }, 3000);
+        } else {
+          // Trình duyệt không hỗ trợ Speech Recognition → chấm ngay
+          scoreNow();
+        }
       };
 
       // Khởi động Web Speech Recognition nếu trình duyệt hỗ trợ
@@ -283,13 +424,18 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
 
           recognition.onerror = () => {
             // Không ngắt thu âm nếu nhận diện gặp lỗi mạng
+            setSpeechUnavailable(true);
           };
 
           recognition.start();
           recognitionRef.current = recognition;
         } catch {
           // Bỏ qua nếu SpeechRecognition bị chặn
+          setSpeechUnavailable(true);
         }
+      } else {
+        // Trình duyệt không hỗ trợ Web Speech API
+        setSpeechUnavailable(true);
       }
 
       mediaRecorder.start();
@@ -346,6 +492,7 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
         userAudioPlayerRef.current = audio;
 
         audio.onended = () => setIsPlayingUser(false);
+        audio.onpause = () => setIsPlayingUser(false);
         audio.onerror = async () => {
           // Fallback phát qua Web Audio API cho Safari
           await playViaWebAudioFallback();
@@ -378,7 +525,10 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
       const source = ctx.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(ctx.destination);
-      source.onended = () => setIsPlayingUser(false);
+      source.onended = () => {
+        setIsPlayingUser(false);
+        void ctx.close();
+      };
       source.start(0);
     } catch {
       setIsPlayingUser(false);
@@ -461,6 +611,7 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
                   type="button"
                   onClick={handlePlayUserAudio}
                   disabled={isPlayingUser}
+                  aria-label="Nghe lại giọng bé"
                   className={`w-11 h-11 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-md ${
                     isPlayingUser
                       ? 'bg-emerald-500 text-white animate-pulse ring-4 ring-emerald-200'
@@ -472,10 +623,11 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
                 <button
                   type="button"
                   onClick={startRecording}
-                  title="Thu âm lại"
-                  className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                  aria-label="Thu âm lại"
+                  className="px-3 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95"
                 >
-                  <RotateCcw size={15} />
+                  <RotateCcw size={14} />
+                  <span>Thu lại</span>
                 </button>
               </div>
               <span className="text-xs font-black text-emerald-800 flex items-center gap-1">
