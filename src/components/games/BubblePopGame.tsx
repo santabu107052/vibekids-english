@@ -91,9 +91,10 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
     const newBubbles: FallingWord[] = options.map((w, i) => ({
       id: `bubble-${roundNum}-${i}-${w.id}`,
       word: w,
-      x: 18 + i * 32,
-      y: -25 - i * 12,
-      speed: 0.35 + Math.random() * 0.2,
+      x: 20 + i * 30,
+      // ✅ Hiển thị NGAY trong khung nhìn (30% - 72%) thay vì bay lên từ ngoài màn hình
+      y: 32 + i * 20,
+      speed: 0.08 + Math.random() * 0.06,
     }));
     bubblesRef.current = newBubbles;
     setBubbles(newBubbles);
@@ -108,16 +109,22 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
     startNewGame();
   }, [startNewGame]);
 
-  // Animation Loop: bong bóng bay lên từ từ (Floating up gently)
+  // Animation Loop: bong bóng trôi nổi nhẹ nhàng trong khung nhìn
   useEffect(() => {
     if (!currentWord) return;
 
+    let frame = 0;
     const tick = () => {
-      bubblesRef.current = bubblesRef.current.map((b) => ({
-        ...b,
-        y: b.y >= 100 ? -25 : b.y + b.speed,
-      }));
-      setBubbles([...bubblesRef.current]);
+      frame++;
+      // Chỉ cập nhật mỗi 3 frame (~20fps) để không làm nặng React re-render
+      if (frame % 3 === 0) {
+        bubblesRef.current = bubblesRef.current.map((b) => ({
+          ...b,
+          // Bay lên rồi quay vòng xuống dưới (luôn nằm trong khung 20% - 88%)
+          y: b.y <= 20 ? 88 : b.y - b.speed,
+        }));
+        setBubbles([...bubblesRef.current]);
+      }
       animRef.current = requestAnimationFrame(tick);
     };
 
@@ -252,9 +259,9 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
               key={bubble.id}
               type="button"
               onClick={() => handleBubbleTap(bubble)}
-              className={`absolute rounded-full flex items-center justify-center font-black text-sm sm:text-base shadow-xl transition-all duration-150 active:scale-90 cursor-pointer select-none ${
+              className={`absolute rounded-full flex items-center justify-center font-black text-sm sm:text-base shadow-xl cursor-pointer select-none ${
                 isCorrectBubble
-                  ? 'bg-emerald-500 text-white ring-4 ring-emerald-200 scale-110'
+                  ? 'bg-emerald-500 text-white ring-4 ring-emerald-200'
                   : isWrongBubble
                   ? 'bg-rose-200 text-rose-700 ring-2 ring-rose-300'
                   : 'bg-white/95 text-sky-900 hover:bg-white ring-2 ring-sky-200'
@@ -264,7 +271,11 @@ export const BubblePopGame: React.FC<BubblePopGameProps> = ({
                 top: `${bubble.y}%`,
                 width: '108px',
                 height: '108px',
-                transform: 'translate(-50%, -50%)',
+                transform: `translate(-50%, -50%) scale(${
+                  isCorrectBubble ? 1.15 : 1
+                })`,
+                // Không dùng transition-all để tránh lag khi chạy animation 20fps
+                willChange: 'transform',
               }}
             >
               <span className="px-2 text-center leading-tight capitalize">{bubble.word.word}</span>
