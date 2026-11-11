@@ -535,13 +535,13 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
             {/* Đầu vẽ thẳng bằng path SVG tại đúng tâm thân (x=160), không dùng foreignObject */}
             <g
               className={
-                mood === 'happy'
-                  ? 'animate-bounce'
-                  : mood === 'eating'
+                mood === 'eating'
                   ? 'animate-pulse'
+                  : mood === 'happy'
+                  ? 'animate-happy-glow'
                   : mood === 'angry' || mood === 'sad'
-                  ? 'animate-shake'
-                  : 'animate-soft-bounce'
+                  ? 'animate-head-sad'
+                  : undefined
               }
               style={{ transformOrigin: '160px 118px' }}
             >
