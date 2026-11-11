@@ -8,7 +8,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   plugins: [
     react(),
-    tailwindcss(),
+    tailwindcss()
   ],
   base: process.env.VITE_APP_TARGET === 'mobile' ? './' : '/vibekids-english/',
   build: {
