@@ -56,194 +56,172 @@ const FOOD_LIST = ['🍎', '🍌', '🥕', '🍖', '🥜', '🍯', '🌰', '🍇
  */
 
 /** ===== ĐẦU THÚ — chỉ phần này thay đổi khi đổi câu ===== */
-const AnimalHead: React.FC<{ animal: GuestAnimal; mood: AnimalMood }> = ({ animal, mood }) => {
+/** ===== ĐẦU THÚ — vẽ hoàn toàn bằng path SVG thuần, cùng hệ toạ độ với thân =====
+ *  Không dùng foreignObject/HTML để tránh lỗi lệch toạ độ.
+ *  Hàm nhận (cx, cy) là TÂM ĐẦU trong hệ toạ độ của scene SVG chính.
+ */
+const AnimalHeadSVG: React.FC<{ animal: GuestAnimal; mood: AnimalMood; cx: number; cy: number }> = ({
+  animal,
+  mood,
+  cx,
+  cy,
+}) => {
   const { id, furColor, furDark, accent } = animal;
 
-  // Mắt & miệng theo cảm xúc
-  const renderFace = () => {
+  // Tâm đầu nằm ở (0,0) cục bộ; dùng transform để dời tới (cx, cy)
+  const eyes = () => {
     switch (mood) {
       case 'happy':
       case 'eating':
-        // Mắt cong vui vẻ + miệng cười mở
         return (
           <>
-            <path d="M 34 52 Q 39 46 44 52" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-            <path d="M 56 52 Q 61 46 66 52" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            <path d="M -16 -4 Q -11 -10 -6 -4" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            <path d="M 6 -4 Q 11 -10 16 -4" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
             {mood === 'eating' ? (
-              <ellipse cx="50" cy="66" rx="7" ry="6" fill="#7f1d1d" />
+              <ellipse cx="0" cy="11" rx="7" ry="6" fill="#7f1d1d" />
             ) : (
-              <path d="M 42 64 Q 50 72 58 64" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+              <path d="M -8 9 Q 0 17 8 9" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
             )}
           </>
         );
       case 'sad':
-        // Mắt nhắm buồn + miệng cong xuống
         return (
           <>
-            <path d="M 34 50 Q 39 55 44 50" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-            <path d="M 56 50 Q 61 55 66 50" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-            <path d="M 42 68 Q 50 60 58 68" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-            {/* Nước mắt */}
-            <ellipse cx="33" cy="60" rx="2.2" ry="3.4" fill="#60a5fa" opacity="0.9" />
+            <path d="M -16 -6 Q -11 -1 -6 -6" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            <path d="M 6 -6 Q 11 -1 16 -6" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            <path d="M -8 13 Q 0 5 8 13" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            <ellipse cx="-17" cy="4" rx="2.2" ry="3.4" fill="#60a5fa" opacity="0.9" />
           </>
         );
       case 'angry':
-        // Lông mày cau + mắt xếch + miệng nghiến
         return (
           <>
-            <path d="M 33 44 L 44 48" stroke="#1e293b" strokeWidth="2.8" strokeLinecap="round" />
-            <path d="M 67 44 L 56 48" stroke="#1e293b" strokeWidth="2.8" strokeLinecap="round" />
-            <circle cx="39" cy="54" r="3.4" fill="#1e293b" />
-            <circle cx="61" cy="54" r="3.4" fill="#1e293b" />
-            <rect x="43" y="65" width="14" height="4.5" rx="1.6" fill="#1e293b" />
+            <path d="M -17 -12 L -6 -8" stroke="#1e293b" strokeWidth="2.8" strokeLinecap="round" />
+            <path d="M 17 -12 L 6 -8" stroke="#1e293b" strokeWidth="2.8" strokeLinecap="round" />
+            <circle cx="-11" cy="-2" r="3.4" fill="#1e293b" />
+            <circle cx="11" cy="-2" r="3.4" fill="#1e293b" />
+            <rect x="-7" y="10" width="14" height="4.5" rx="1.6" fill="#1e293b" />
           </>
         );
       default:
-        // Chờ đợi: mắt tròn to, miệng chữ O háo hức
         return (
           <>
-            <circle cx="39" cy="52" r="4.2" fill="#1e293b" />
-            <circle cx="61" cy="52" r="4.2" fill="#1e293b" />
-            <circle cx="40.4" cy="50.6" r="1.3" fill="#fff" />
-            <circle cx="62.4" cy="50.6" r="1.3" fill="#fff" />
-            <ellipse cx="50" cy="66" rx="4.2" ry="3.4" fill="#7f1d1d" />
+            <circle cx="-11" cy="-4" r="4.2" fill="#1e293b" />
+            <circle cx="11" cy="-4" r="4.2" fill="#1e293b" />
+            <circle cx="-9.6" cy="-5.4" r="1.3" fill="#fff" />
+            <circle cx="12.4" cy="-5.4" r="1.3" fill="#fff" />
+            <ellipse cx="0" cy="11" rx="4.2" ry="3.4" fill="#7f1d1d" />
           </>
         );
     }
   };
 
-  // Tai theo từng loài
-  const renderEars = () => {
+  const ears = () => {
     switch (id) {
       case 'rabbit':
         return (
           <>
-            <ellipse cx="36" cy="16" rx="7" ry="17" fill={furColor} stroke={furDark} strokeWidth="2" />
-            <ellipse cx="36" cy="16" rx="3.4" ry="12" fill={accent} />
-            <ellipse cx="64" cy="16" rx="7" ry="17" fill={furColor} stroke={furDark} strokeWidth="2" />
-            <ellipse cx="64" cy="16" rx="3.4" ry="12" fill={accent} />
+            <ellipse cx="-14" cy="-38" rx="7" ry="17" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <ellipse cx="-14" cy="-38" rx="3.4" ry="12" fill={accent} />
+            <ellipse cx="14" cy="-38" rx="7" ry="17" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <ellipse cx="14" cy="-38" rx="3.4" ry="12" fill={accent} />
           </>
         );
       case 'pig':
         return (
           <>
-            <path d="M 24 30 L 30 12 L 42 26 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
-            <path d="M 76 30 L 70 12 L 58 26 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
+            <path d="M -26 -20 L -20 -38 L -8 -24 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
+            <path d="M 26 -20 L 20 -38 L 8 -24 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
           </>
         );
       case 'fox':
         return (
           <>
-            <path d="M 22 34 L 26 8 L 44 26 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
-            <path d="M 28 26 L 30 15 L 38 24 Z" fill={accent} />
-            <path d="M 78 34 L 74 8 L 56 26 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
-            <path d="M 72 26 L 70 15 L 62 24 Z" fill={accent} />
+            <path d="M -28 -16 L -24 -42 L -6 -24 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
+            <path d="M -22 -24 L -20 -35 L -12 -26 Z" fill={accent} />
+            <path d="M 28 -16 L 24 -42 L 6 -24 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
+            <path d="M 22 -24 L 20 -35 L 12 -26 Z" fill={accent} />
           </>
         );
       case 'koala':
         return (
           <>
-            <circle cx="22" cy="36" r="14" fill={furColor} stroke={furDark} strokeWidth="2" />
-            <circle cx="22" cy="36" r="8" fill={accent} />
-            <circle cx="78" cy="36" r="14" fill={furColor} stroke={furDark} strokeWidth="2" />
-            <circle cx="78" cy="36" r="8" fill={accent} />
+            <circle cx="-28" cy="-14" r="14" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="-28" cy="-14" r="8" fill={accent} />
+            <circle cx="28" cy="-14" r="14" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="28" cy="-14" r="8" fill={accent} />
           </>
         );
       case 'hamster':
         return (
           <>
-            <circle cx="30" cy="22" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
-            <circle cx="30" cy="22" r="5" fill={accent} />
-            <circle cx="70" cy="22" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
-            <circle cx="70" cy="22" r="5" fill={accent} />
+            <circle cx="-20" cy="-28" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="-20" cy="-28" r="5" fill={accent} />
+            <circle cx="20" cy="-28" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="20" cy="-28" r="5" fill={accent} />
           </>
         );
       default:
-        // Tai tròn (gấu, gấu trúc, hổ, gấu mèo, khỉ)
         return (
           <>
-            <circle cx="26" cy="24" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
-            <circle cx="26" cy="24" r="5" fill={id === 'panda' ? furDark : accent} />
-            <circle cx="74" cy="24" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
-            <circle cx="74" cy="24" r="5" fill={id === 'panda' ? furDark : accent} />
+            <circle cx="-24" cy="-26" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="-24" cy="-26" r="5" fill={id === 'panda' ? furDark : accent} />
+            <circle cx="24" cy="-26" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="24" cy="-26" r="5" fill={id === 'panda' ? furDark : accent} />
           </>
         );
     }
   };
 
-  // Vằn/họa tiết đặc trưng
-  const renderPattern = () => {
-    if (id === 'panda') {
+  const pattern = () => {
+    if (id === 'panda')
       return (
         <>
-          <ellipse cx="36" cy="52" rx="9" ry="11" fill={furDark} />
-          <ellipse cx="64" cy="52" rx="9" ry="11" fill={furDark} />
+          <ellipse cx="-14" cy="-4" rx="9" ry="11" fill={furDark} />
+          <ellipse cx="14" cy="-4" rx="9" ry="11" fill={furDark} />
         </>
       );
-    }
-    if (id === 'tiger') {
+    if (id === 'tiger')
       return (
         <>
-          <path d="M 46 22 L 48 34" stroke={furDark} strokeWidth="2.6" strokeLinecap="round" />
-          <path d="M 54 22 L 52 34" stroke={furDark} strokeWidth="2.6" strokeLinecap="round" />
-          <path d="M 24 44 L 32 46" stroke={furDark} strokeWidth="2.4" strokeLinecap="round" />
-          <path d="M 76 44 L 68 46" stroke={furDark} strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M -4 -32 L -2 -20" stroke={furDark} strokeWidth="2.6" strokeLinecap="round" />
+          <path d="M 4 -32 L 2 -20" stroke={furDark} strokeWidth="2.6" strokeLinecap="round" />
+          <path d="M -26 -8 L -18 -6" stroke={furDark} strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M 26 -8 L 18 -6" stroke={furDark} strokeWidth="2.4" strokeLinecap="round" />
         </>
       );
-    }
-    if (id === 'raccoon') {
-      return (
-        <>
-          <rect x="26" y="46" width="48" height="10" rx="5" fill={furDark} opacity="0.92" />
-        </>
-      );
-    }
-    if (id === 'fox') {
-      return (
-        <>
-          <ellipse cx="50" cy="72" rx="16" ry="12" fill={accent} />
-        </>
-      );
-    }
-    if (id === 'monkey') {
-      return (
-        <>
-          <ellipse cx="50" cy="62" rx="20" ry="16" fill={accent} />
-        </>
-      );
-    }
+    if (id === 'raccoon') return <rect x="-24" y="-10" width="48" height="10" rx="5" fill={furDark} opacity="0.92" />;
+    if (id === 'fox') return <ellipse cx="0" cy="18" rx="16" ry="12" fill={accent} />;
+    if (id === 'monkey') return <ellipse cx="0" cy="8" rx="20" ry="16" fill={accent} />;
     return null;
   };
 
   return (
-    // viewBox shifted so head ellipse centre (50,52) sits exactly at the card centre (50,50),
-    // ears above are still visible thanks to overflow-visible + wider viewBox height
-    <svg viewBox="0 -7 100 118" className="w-full h-full" preserveAspectRatio="xMidYMid meet" overflow="visible">
-      {renderEars()}
-      {/* Đầu */}
-      <ellipse cx="50" cy="52" rx="30" ry="30" fill={furColor} stroke={furDark} strokeWidth="2.4" />
-      {renderPattern()}
-      {renderFace()}
-      {/* Mũi */}
-      <ellipse cx="50" cy="60" rx={id === 'pig' ? 7 : 4.5} ry={id === 'pig' ? 5 : 3.4} fill={id === 'pig' ? '#fb7185' : furDark} stroke={id === 'pig' ? '#e11d48' : 'none'} strokeWidth="1.4" />
+    <g transform={`translate(${cx}, ${cy})`}>
+      {ears()}
+      <ellipse cx="0" cy="0" rx="30" ry="30" fill={furColor} stroke={furDark} strokeWidth="2.4" />
+      {pattern()}
+      {eyes()}
+      <ellipse cx="0" cy="8" rx={id === 'pig' ? 7 : 4.5} ry={id === 'pig' ? 5 : 3.4} fill={id === 'pig' ? '#fb7185' : furDark} stroke={id === 'pig' ? '#e11d48' : 'none'} strokeWidth="1.4" />
       {id === 'pig' && (
         <>
-          <circle cx="47.5" cy="60" r="1.5" fill="#9f1239" />
-          <circle cx="52.5" cy="60" r="1.5" fill="#9f1239" />
+          <circle cx="-2.5" cy="8" r="1.5" fill="#9f1239" />
+          <circle cx="2.5" cy="8" r="1.5" fill="#9f1239" />
         </>
       )}
-      {/* Râu mèo/gấu mèo */}
       {(id === 'raccoon' || id === 'hamster' || id === 'rabbit') && (
         <>
-          <line x1="18" y1="58" x2="34" y2="60" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
-          <line x1="18" y1="64" x2="34" y2="64" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
-          <line x1="82" y1="58" x2="66" y2="60" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
-          <line x1="82" y1="64" x2="66" y2="64" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
+          <line x1="-32" y1="6" x2="-16" y2="8" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
+          <line x1="-32" y1="12" x2="-16" y2="12" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
+          <line x1="32" y1="6" x2="16" y2="8" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
+          <line x1="32" y1="12" x2="16" y2="12" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
         </>
       )}
-    </svg>
+    </g>
   );
 };
+
+
 
 export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
   words,
@@ -554,9 +532,8 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
             </g>
 
             {/* ---------- ANIMAL HEAD (ONLY THIS CHANGES PER ROUND) ---------- */}
-            {/* Centred on body axis x=160, neck overlaps body top so head is attached */}
+            {/* Đầu vẽ thẳng bằng path SVG tại đúng tâm thân (x=160), không dùng foreignObject */}
             <g
-              transform="translate(160, 96)"
               className={
                 mood === 'happy'
                   ? 'animate-bounce'
@@ -566,15 +543,9 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
                   ? 'animate-shake'
                   : 'animate-soft-bounce'
               }
+              style={{ transformOrigin: '160px 118px' }}
             >
-              {/* Nested <svg> centres a 100x100 head box on the body axis (x=160) */}
-              <svg x="-50" y="-50" width="100" height="100" overflow="visible">
-                <foreignObject x="0" y="-12" width="100" height="118">
-                  <div className="flex items-center justify-center w-full h-full">
-                    <AnimalHead animal={animal} mood={mood} />
-                  </div>
-                </foreignObject>
-              </svg>
+              <AnimalHeadSVG animal={animal} mood={mood} cx={160} cy={118} />
             </g>
 
             {/* ---------- EMOTION EFFECTS ---------- */}
