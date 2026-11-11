@@ -272,10 +272,14 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     setRoundHasError(false);
     setCurrentRound(roundNum);
 
-    // Audio cue
-    setTimeout(() => {
-      playWordAudio(target.word, target.audioUrl);
-    }, 250);
+    // Audio cue — CHỈ phát âm tự động ở các game cần nghe.
+    // TUYỆT ĐỐI KHÔNG phát âm với 'secret_animal' (sẽ lộ đáp án) hay game chỉ dùng mặt chữ.
+    const AUDIO_CUE_VARIANTS: MiniGameVariant[] = ['sound_detective', 'spelling', 'scramble'];
+    if (AUDIO_CUE_VARIANTS.includes(variant)) {
+      setTimeout(() => {
+        playWordAudio(target.word, target.audioUrl);
+      }, 250);
+    }
   };
 
   const startNewGame = () => {
