@@ -76,6 +76,8 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   // States for Bubble Match & Sound Detective
   const [options, setOptions] = useState<WordItem[]>([]);
   const [selectedOption, setSelectedOption] = useState<WordItem | null>(null);
+  // 3 đáp án luôn chứa đáp án đúng (dùng cho game chỉ hiện 3 lựa chọn)
+  const [tripleOptions, setTripleOptions] = useState<WordItem[]>([]);
   const [isAnswered, setIsAnswered] = useState(false);
 
   // States for Word Scramble
@@ -144,6 +146,11 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     const distractors = shuffledOthers.slice(0, 3);
     const roundOptions = shuffleList([target, ...distractors]);
     setOptions(roundOptions);
+
+    // ✅ Danh sách 2 đáp án riêng cho game chỉ hiển thị 3 nút (bong bóng / vườn / kẹo).
+    // TUYỆT ĐỐI không dùng options.slice(0,3) vì có thể CẮT MẤT đáp án đúng!
+    const twoDistractors = shuffledOthers.slice(0, 2);
+    setTripleOptions(shuffleList([target, ...twoDistractors]));
 
     // Prepare scramble letters
     const chars = target.word.toLowerCase().split('');
@@ -1021,7 +1028,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
                   : 'radial-gradient(circle at 25% 18%, #f0f9ff, #93c5fd)',
             }}
           >
-            {options.slice(0, 3).map((opt, i) => {
+            {tripleOptions.map((opt, i) => {
               const isTarget = opt.id === currentWord.id;
               const isCorrectBubble = bpMood === 'correct' && isTarget;
               return (
@@ -1164,7 +1171,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {options.slice(0, 3).map((opt) => {
+            {tripleOptions.map((opt) => {
               const isTarget = opt.id === currentWord.id;
               return (
                 <button
@@ -1228,7 +1235,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {options.slice(0, 3).map((opt) => {
+            {tripleOptions.map((opt) => {
               const isTarget = opt.id === currentWord.id;
               return (
                 <button
