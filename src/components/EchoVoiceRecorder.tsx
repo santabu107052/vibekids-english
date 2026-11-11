@@ -243,6 +243,8 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
   const vadHeardSpeechRef = useRef<boolean>(false);
   const vadSilenceStartRef = useRef<number>(0);
   const vadVolumeRef = useRef<number>(0);
+  // Callback chấm điểm — được onend gọi BẤT CỨ LÚC NÀO (kể cả trước khi onstop chạy)
+  const finishScoringRef = useRef<(() => void) | null>(null);
 
   // Clean up recorded blob URL on unmount
   useEffect(() => {
@@ -413,6 +415,8 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
         const scoreNow = () => {
           if (scored) return;
           scored = true;
+          // Chặn onend gọi lại lần nữa
+          finishScoringRef.current = null;
           evaluatePronunciation(recognizedTranscriptRef.current);
           // Giải phóng mic + reset tham chiếu để lần "thu lại" không bị kẹt
           streamRef.getTracks().forEach((track) => track.stop());
@@ -420,24 +424,29 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
           recognitionRef.current = null;
         };
 
+        // Cho onend (đã gắn sẵn từ lúc tạo recognition) biết cần chấm điểm.
+        // onend có thể đã/đang/sẽ bắn — đều xử lý được vì handler gắn 1 lần duy nhất.
+        finishScoringRef.current = scoreNow;
+
         if (recognition) {
-          // Gắn onend MỚI (ghi đè handler cũ) để chấm điểm sau khi recognition xong
-          recognition.onend = () => {
-            // Một số trình duyệt bắn 'onend' TRƯỚC 'onresult' → chờ thêm 400ms
-            window.setTimeout(() => {
-              scoreNow();
-            }, 400);
-          };
-          // Yêu cầu recognition dừng & trả kết quả cuối
-          try {
-            recognition.stop();
-          } catch {
-            // recognition có thể đã tự dừng → onend sẽ vẫn bắn
+          // Nếu recognition đã kết thúc rồi (onend đã bắn trước khi ta kịp gán callback)
+          // thì chấm ngay, không chờ.
+          if (recognitionEndedRef.current) {
+            window.setTimeout(() => scoreNow(), 150);
+          } else {
+            // Yêu cầu recognition dừng & trả kết quả cuối.
+            // LƯU Ý: stop() sẽ ném InvalidStateError nếu recognition đã dừng sẵn —
+            // điều này KHÔNG sao, vì onend đã bắn hoặc sẽ bắn ngay sau đó.
+            try {
+              recognition.stop();
+            } catch {
+              // Đã dừng sẵn → onend đã bắn → finishScoringRef sẽ được gọi trong 400ms tới
+            }
           }
-          // Dự phòng tuyệt đối: chấm sau 3000ms dù onend không bắn
+          // Dự phòng tuyệt đối: chấm sau 2500ms dù onend không bắn
           window.setTimeout(() => {
             scoreNow();
-          }, 3000);
+          }, 2500);
         } else {
           // Trình duyệt không hỗ trợ Speech Recognition → chấm ngay
           scoreNow();
@@ -453,14 +462,22 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
         try {
           const recognition = new SpeechRecognitionCtor();
           recognition.lang = 'en-US';
-          recognition.continuous = false;
+          // continuous = true: recognition nghe LIÊN TỤC suốt thời gian thu.
+          // Với false, nó tự dừng ngay khi bé ngừng nói → có thể dừng TRƯỚC mediaRecorder.onstop,
+          // khiến transcript bị mất và game chấm 0 điểm.
+          recognition.continuous = true;
           recognition.interimResults = false;
           recognition.maxAlternatives = 3;
 
           recognition.onresult = (event) => {
-            if (event.results && event.results[0] && event.results[0][0]) {
-              recognizedTranscriptRef.current = event.results[0][0].transcript;
+            // Với continuous=true, onresult có thể bắn nhiều lần → ghép tất cả transcript
+            let combined = '';
+            for (let i = 0; i < event.results.length; i++) {
+              const alt = event.results[i]?.[0];
+              if (alt?.transcript) combined += ' ' + alt.transcript;
             }
+            const text = combined.trim();
+            if (text) recognizedTranscriptRef.current = text;
           };
 
           // ⚠️ macOS/Chrome cần ~1-2s để khởi động speech service (tải model ngôn ngữ).
@@ -484,9 +501,14 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
             }
           };
 
+          // onend được gắn DUY NHẤT MỘT LẦN ở đây, không bao giờ bị ghi đè sau này.
+          // Khi recognition kết thúc (do bé ngừng nói, do hết giờ, hoặc do stop()),
+          // ta chờ 400ms cho onresult kịp gán transcript rồi mới chấm điểm.
           recognition.onend = () => {
-            if (recognitionRef.current) {
-              recognitionEndedRef.current = true;
+            recognitionEndedRef.current = true;
+            const finish = finishScoringRef.current;
+            if (finish) {
+              window.setTimeout(() => finish(), 400);
             }
           };
 
@@ -762,6 +784,17 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
                     : '⏳ Đang bật micro... chờ 1 giây'
                   : 'Chạm Mic để nói'}
               </span>
+              {/* Thanh đo âm lượng thời gian thực — giúp xác định micro có thu được tiếng không */}
+              {isRecording && (
+                <div className="w-full px-1 mt-0.5">
+                  <div className="h-1.5 w-full rounded-full bg-purple-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-75"
+                      style={{ width: `${Math.min(100, micLevel)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <>
