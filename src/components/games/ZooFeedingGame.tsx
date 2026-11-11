@@ -218,7 +218,7 @@ const AnimalHead: React.FC<{ animal: GuestAnimal; mood: AnimalMood }> = ({ anima
   return (
     // viewBox shifted so head ellipse centre (50,52) sits exactly at the card centre (50,50),
     // ears above are still visible thanks to overflow-visible + wider viewBox height
-    <svg viewBox="0 -12 100 118" className="w-[86px] h-[86px] overflow-visible">
+    <svg viewBox="0 -7 100 118" className="w-full h-full" preserveAspectRatio="xMidYMid meet" overflow="visible">
       {renderEars()}
       {/* Đầu */}
       <ellipse cx="50" cy="52" rx="30" ry="30" fill={furColor} stroke={furDark} strokeWidth="2.4" />
@@ -556,7 +556,7 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
             {/* ---------- ANIMAL HEAD (ONLY THIS CHANGES PER ROUND) ---------- */}
             {/* Centred on body axis x=160, neck overlaps body top so head is attached */}
             <g
-              transform="translate(110, 62)"
+              transform="translate(160, 96)"
               className={
                 mood === 'happy'
                   ? 'animate-bounce'
@@ -566,13 +566,15 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
                   ? 'animate-shake'
                   : 'animate-soft-bounce'
               }
-              style={{ transformOrigin: '50px 50px' }}
             >
-              <foreignObject x="-4" y="-18" width="108" height="124">
-                <div className="flex items-center justify-center w-full h-full">
-                  <AnimalHead animal={animal} mood={mood} />
-                </div>
-              </foreignObject>
+              {/* Nested <svg> centres a 100x100 head box on the body axis (x=160) */}
+              <svg x="-50" y="-50" width="100" height="100" overflow="visible">
+                <foreignObject x="0" y="-12" width="100" height="118">
+                  <div className="flex items-center justify-center w-full h-full">
+                    <AnimalHead animal={animal} mood={mood} />
+                  </div>
+                </foreignObject>
+              </svg>
             </g>
 
             {/* ---------- EMOTION EFFECTS ---------- */}
