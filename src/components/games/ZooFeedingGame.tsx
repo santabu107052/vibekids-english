@@ -17,17 +17,28 @@ interface ZooFeedingGameProps {
 type AnimalMood = 'waiting' | 'eating' | 'happy' | 'sad' | 'angry';
 
 // Các bạn thú "đầu bếp" luân phiên ngồi vào bàn
-const GUEST_ANIMALS = [
-  { emoji: '🐻', name: 'Gấu Nâu' },
-  { emoji: '🐼', name: 'Gấu Trúc' },
-  { emoji: '🦊', name: 'Cáo Nhỏ' },
-  { emoji: '🐰', name: 'Thỏ Bông' },
-  { emoji: '🐯', name: 'Hổ Con' },
-  { emoji: '🐨', name: 'Koala' },
-  { emoji: '🐧', name: 'Cánh Cụt' },
-  { emoji: '🐹', name: 'Chuột Hamster' },
-  { emoji: '🐷', name: 'Heo Con' },
-  { emoji: '🦝', name: 'Gấu Mèo' },
+type AnimalId = 'bear' | 'panda' | 'fox' | 'rabbit' | 'tiger' | 'koala' | 'pig' | 'hamster' | 'raccoon' | 'monkey';
+
+interface GuestAnimal {
+  id: AnimalId;
+  name: string;
+  furColor: string;
+  furDark: string;
+  accent: string;
+}
+
+// Chỉ ĐẦU thú được thay đổi khi đổi câu — thân/tay/chân dùng chung 1 hình SVG
+const GUEST_ANIMALS: GuestAnimal[] = [
+  { id: 'bear', name: 'Gấu Nâu', furColor: '#a16207', furDark: '#78350f', accent: '#fcd34d' },
+  { id: 'panda', name: 'Gấu Trúc', furColor: '#f8fafc', furDark: '#0f172a', accent: '#1e293b' },
+  { id: 'fox', name: 'Cáo Nhỏ', furColor: '#f97316', furDark: '#c2410c', accent: '#fff7ed' },
+  { id: 'rabbit', name: 'Thỏ Bông', furColor: '#f8fafc', furDark: '#e2e8f0', accent: '#fda4af' },
+  { id: 'tiger', name: 'Hổ Con', furColor: '#f59e0b', furDark: '#1c1917', accent: '#fef3c7' },
+  { id: 'koala', name: 'Koala', furColor: '#94a3b8', furDark: '#475569', accent: '#f1f5f9' },
+  { id: 'pig', name: 'Heo Con', furColor: '#fda4af', furDark: '#e11d48', accent: '#fecdd3' },
+  { id: 'hamster', name: 'Hamster', furColor: '#d97706', furDark: '#92400e', accent: '#fef3c7' },
+  { id: 'raccoon', name: 'Gấu Mèo', furColor: '#64748b', furDark: '#1e293b', accent: '#e2e8f0' },
+  { id: 'monkey', name: 'Khỉ Con', furColor: '#92400e', furDark: '#78350f', accent: '#fed7aa' },
 ];
 
 const FOOD_LIST = ['🍎', '🍌', '🥕', '🍖', '🥜', '🍯', '🌰', '🍇', '🍓', '🥦'];
@@ -43,6 +54,195 @@ const FOOD_LIST = ['🍎', '🍌', '🥕', '🍖', '🥜', '🍯', '🌰', '🍇
  * - Bé trả lời ĐÚNG → dĩa trống có thức ăn, thú ăn ngon lành và reo vui 😋→🥳
  * - Bé trả lời SAI  → thú buồn 😢 hoặc tức giận 😠, dĩa vẫn trống
  */
+
+/** ===== ĐẦU THÚ — chỉ phần này thay đổi khi đổi câu ===== */
+const AnimalHead: React.FC<{ animal: GuestAnimal; mood: AnimalMood }> = ({ animal, mood }) => {
+  const { id, furColor, furDark, accent } = animal;
+
+  // Mắt & miệng theo cảm xúc
+  const renderFace = () => {
+    switch (mood) {
+      case 'happy':
+      case 'eating':
+        // Mắt cong vui vẻ + miệng cười mở
+        return (
+          <>
+            <path d="M 34 52 Q 39 46 44 52" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            <path d="M 56 52 Q 61 46 66 52" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            {mood === 'eating' ? (
+              <ellipse cx="50" cy="66" rx="7" ry="6" fill="#7f1d1d" />
+            ) : (
+              <path d="M 42 64 Q 50 72 58 64" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            )}
+          </>
+        );
+      case 'sad':
+        // Mắt nhắm buồn + miệng cong xuống
+        return (
+          <>
+            <path d="M 34 50 Q 39 55 44 50" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            <path d="M 56 50 Q 61 55 66 50" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            <path d="M 42 68 Q 50 60 58 68" stroke="#1e293b" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+            {/* Nước mắt */}
+            <ellipse cx="33" cy="60" rx="2.2" ry="3.4" fill="#60a5fa" opacity="0.9" />
+          </>
+        );
+      case 'angry':
+        // Lông mày cau + mắt xếch + miệng nghiến
+        return (
+          <>
+            <path d="M 33 44 L 44 48" stroke="#1e293b" strokeWidth="2.8" strokeLinecap="round" />
+            <path d="M 67 44 L 56 48" stroke="#1e293b" strokeWidth="2.8" strokeLinecap="round" />
+            <circle cx="39" cy="54" r="3.4" fill="#1e293b" />
+            <circle cx="61" cy="54" r="3.4" fill="#1e293b" />
+            <rect x="43" y="65" width="14" height="4.5" rx="1.6" fill="#1e293b" />
+          </>
+        );
+      default:
+        // Chờ đợi: mắt tròn to, miệng chữ O háo hức
+        return (
+          <>
+            <circle cx="39" cy="52" r="4.2" fill="#1e293b" />
+            <circle cx="61" cy="52" r="4.2" fill="#1e293b" />
+            <circle cx="40.4" cy="50.6" r="1.3" fill="#fff" />
+            <circle cx="62.4" cy="50.6" r="1.3" fill="#fff" />
+            <ellipse cx="50" cy="66" rx="4.2" ry="3.4" fill="#7f1d1d" />
+          </>
+        );
+    }
+  };
+
+  // Tai theo từng loài
+  const renderEars = () => {
+    switch (id) {
+      case 'rabbit':
+        return (
+          <>
+            <ellipse cx="36" cy="16" rx="7" ry="17" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <ellipse cx="36" cy="16" rx="3.4" ry="12" fill={accent} />
+            <ellipse cx="64" cy="16" rx="7" ry="17" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <ellipse cx="64" cy="16" rx="3.4" ry="12" fill={accent} />
+          </>
+        );
+      case 'pig':
+        return (
+          <>
+            <path d="M 24 30 L 30 12 L 42 26 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
+            <path d="M 76 30 L 70 12 L 58 26 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
+          </>
+        );
+      case 'fox':
+        return (
+          <>
+            <path d="M 22 34 L 26 8 L 44 26 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
+            <path d="M 28 26 L 30 15 L 38 24 Z" fill={accent} />
+            <path d="M 78 34 L 74 8 L 56 26 Z" fill={furColor} stroke={furDark} strokeWidth="2" strokeLinejoin="round" />
+            <path d="M 72 26 L 70 15 L 62 24 Z" fill={accent} />
+          </>
+        );
+      case 'koala':
+        return (
+          <>
+            <circle cx="22" cy="36" r="14" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="22" cy="36" r="8" fill={accent} />
+            <circle cx="78" cy="36" r="14" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="78" cy="36" r="8" fill={accent} />
+          </>
+        );
+      case 'hamster':
+        return (
+          <>
+            <circle cx="30" cy="22" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="30" cy="22" r="5" fill={accent} />
+            <circle cx="70" cy="22" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="70" cy="22" r="5" fill={accent} />
+          </>
+        );
+      default:
+        // Tai tròn (gấu, gấu trúc, hổ, gấu mèo, khỉ)
+        return (
+          <>
+            <circle cx="26" cy="24" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="26" cy="24" r="5" fill={id === 'panda' ? furDark : accent} />
+            <circle cx="74" cy="24" r="10" fill={furColor} stroke={furDark} strokeWidth="2" />
+            <circle cx="74" cy="24" r="5" fill={id === 'panda' ? furDark : accent} />
+          </>
+        );
+    }
+  };
+
+  // Vằn/họa tiết đặc trưng
+  const renderPattern = () => {
+    if (id === 'panda') {
+      return (
+        <>
+          <ellipse cx="36" cy="52" rx="9" ry="11" fill={furDark} />
+          <ellipse cx="64" cy="52" rx="9" ry="11" fill={furDark} />
+        </>
+      );
+    }
+    if (id === 'tiger') {
+      return (
+        <>
+          <path d="M 46 22 L 48 34" stroke={furDark} strokeWidth="2.6" strokeLinecap="round" />
+          <path d="M 54 22 L 52 34" stroke={furDark} strokeWidth="2.6" strokeLinecap="round" />
+          <path d="M 24 44 L 32 46" stroke={furDark} strokeWidth="2.4" strokeLinecap="round" />
+          <path d="M 76 44 L 68 46" stroke={furDark} strokeWidth="2.4" strokeLinecap="round" />
+        </>
+      );
+    }
+    if (id === 'raccoon') {
+      return (
+        <>
+          <rect x="26" y="46" width="48" height="10" rx="5" fill={furDark} opacity="0.92" />
+        </>
+      );
+    }
+    if (id === 'fox') {
+      return (
+        <>
+          <ellipse cx="50" cy="72" rx="16" ry="12" fill={accent} />
+        </>
+      );
+    }
+    if (id === 'monkey') {
+      return (
+        <>
+          <ellipse cx="50" cy="62" rx="20" ry="16" fill={accent} />
+        </>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <svg viewBox="0 0 100 100" className="w-[78px] h-[78px] overflow-visible">
+      {renderEars()}
+      {/* Đầu */}
+      <ellipse cx="50" cy="52" rx="30" ry="30" fill={furColor} stroke={furDark} strokeWidth="2.4" />
+      {renderPattern()}
+      {renderFace()}
+      {/* Mũi */}
+      <ellipse cx="50" cy="60" rx={id === 'pig' ? 7 : 4.5} ry={id === 'pig' ? 5 : 3.4} fill={id === 'pig' ? '#fb7185' : furDark} stroke={id === 'pig' ? '#e11d48' : 'none'} strokeWidth="1.4" />
+      {id === 'pig' && (
+        <>
+          <circle cx="47.5" cy="60" r="1.5" fill="#9f1239" />
+          <circle cx="52.5" cy="60" r="1.5" fill="#9f1239" />
+        </>
+      )}
+      {/* Râu mèo/gấu mèo */}
+      {(id === 'raccoon' || id === 'hamster' || id === 'rabbit') && (
+        <>
+          <line x1="18" y1="58" x2="34" y2="60" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
+          <line x1="18" y1="64" x2="34" y2="64" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
+          <line x1="82" y1="58" x2="66" y2="60" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
+          <line x1="82" y1="64" x2="66" y2="64" stroke="#64748b" strokeWidth="1.2" opacity="0.7" />
+        </>
+      )}
+    </svg>
+  );
+};
+
 export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
   words,
   profile,
@@ -204,14 +404,6 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
   }
 
   // Biểu cảm của bạn thú theo trạng thái
-  const animalFace: Record<AnimalMood, string> = {
-    waiting: animal.emoji,
-    eating: '😋',
-    happy: '🥳',
-    sad: '😢',
-    angry: '😠',
-  };
-
   const bubbleText: Record<AnimalMood, string> = {
     waiting: `Mình đang đói bụng... Cho mình ăn nhé!`,
     eating: `Nhai nhai... ngon quá!`,
@@ -237,17 +429,16 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
         <span className="text-sm font-black text-emerald-700">Đã cho {fedCount} bạn thú ăn</span>
       </div>
 
-      {/* ===== DINNER TABLE SCENE ===== */}
-      <div className="rounded-[2rem] border-4 border-amber-200 bg-gradient-to-b from-rose-50 via-amber-50 to-orange-100 p-5 mb-4 relative overflow-hidden shadow-inner">
-        {/* Wall decoration */}
-        <div className="absolute top-3 right-4 text-2xl opacity-40 select-none">🖼️</div>
-        <div className="absolute top-4 left-4 text-xl opacity-30 select-none">💡</div>
+      {/* ===== DINNER TABLE SCENE (Full SVG Illustration) ===== */}
+      <div className="rounded-[2rem] border-4 border-amber-200 bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 p-3 mb-4 relative overflow-hidden shadow-inner">
+        {/* Wall decor */}
+        <div className="absolute top-2 right-3 text-2xl opacity-40 select-none">🖼️</div>
+        <div className="absolute top-2 left-3 text-xl opacity-30 select-none">💡</div>
 
-        {/* Guest animal sitting at table */}
-        <div className="flex flex-col items-center pt-2 pb-1">
-          {/* Speech bubble */}
+        {/* Speech bubble (overlaid, positioned near animal head) */}
+        <div className="relative z-20 flex justify-center pt-1 pb-1">
           <div
-            className={`relative mb-2 px-4 py-2 rounded-2xl text-xs font-bold shadow-md max-w-[85%] text-center transition-all ${
+            className={`relative px-3.5 py-1.5 rounded-2xl text-[11px] font-bold shadow-md max-w-[78%] text-center transition-all ${
               mood === 'happy'
                 ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-300'
                 : mood === 'sad' || mood === 'angry'
@@ -270,68 +461,130 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
               }`}
             />
           </div>
+        </div>
 
-          {/* Animal with cutlery */}
-          <div className="relative">
-            {/* Fork (left hand) */}
-            <span className="absolute -left-8 top-4 text-2xl select-none" style={{ transform: 'rotate(-25deg)' }}>
-              🍴
-            </span>
-            {/* Animal face with mood animation */}
-            <div
-              className={`text-6xl transition-transform ${
+        {/* ===== FULL SCENE SVG: animal body + table + plate + cutlery ===== */}
+        <div
+          className="relative flex justify-center"
+          style={{ filter: 'drop-shadow(0 6px 10px rgba(120,53,15,0.18))' }}
+        >
+          <svg viewBox="0 0 320 240" className="w-full max-w-[340px] h-auto">
+            {/* ---------- BACKGROUND: floor ---------- */}
+            <rect x="0" y="196" width="320" height="44" fill="#fde68a" opacity="0.55" />
+            <rect x="0" y="196" width="320" height="4" fill="#d97706" opacity="0.35" />
+
+            {/* ---------- CHAIR BACK (behind animal) ---------- */}
+            <rect x="112" y="52" width="96" height="120" rx="12" fill="#b45309" opacity="0.85" />
+            <rect x="118" y="58" width="84" height="108" rx="9" fill="#d97706" opacity="0.55" />
+
+            {/* ---------- ANIMAL BODY (SHARED) ---------- */}
+            {/* Body */}
+            <ellipse cx="160" cy="150" rx="46" ry="40" fill={animal.furColor} stroke={animal.furDark} strokeWidth="2.6" />
+            {/* Belly */}
+            <ellipse cx="160" cy="158" rx="30" ry="26" fill={animal.accent} opacity="0.55" />
+
+            {/* ---------- ARMS (SHARED) ---------- */}
+            {/* Left arm holding fork */}
+            <path d="M 122 140 Q 100 148 96 170" stroke={animal.furColor} strokeWidth="15" fill="none" strokeLinecap="round" />
+            <path d="M 122 140 Q 100 148 96 170" stroke={animal.furDark} strokeWidth="15" fill="none" strokeLinecap="round" opacity="0.18" />
+            {/* Right arm holding knife */}
+            <path d="M 198 140 Q 220 148 224 170" stroke={animal.furColor} strokeWidth="15" fill="none" strokeLinecap="round" />
+            <path d="M 198 140 Q 220 148 224 170" stroke={animal.furDark} strokeWidth="15" fill="none" strokeLinecap="round" opacity="0.18" />
+
+            {/* ---------- CUTLERY IN HANDS ---------- */}
+            {/* Fork (left) */}
+            <g transform="translate(96,186) rotate(12)">
+              <rect x="-2" y="0" width="4" height="26" rx="2" fill="#94a3b8" />
+              <path d="M -6 0 L -6 -12 M 0 0 L 0 -13 M 6 0 L 6 -12" stroke="#cbd5e1" strokeWidth="2.6" strokeLinecap="round" />
+              <rect x="-7" y="-2" width="14" height="4" rx="2" fill="#cbd5e1" />
+            </g>
+            {/* Knife (right) */}
+            <g transform="translate(224,186) rotate(-12)">
+              <rect x="-2" y="0" width="4" height="26" rx="2" fill="#94a3b8" />
+              <path d="M -3 -18 L 3 -18 L 3 0 L -3 0 Z" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="1.2" />
+            </g>
+
+            {/* ---------- TABLE (front, drawn over body bottom) ---------- */}
+            {/* Table top surface */}
+            <ellipse cx="160" cy="206" rx="132" ry="16" fill="#c2410c" />
+            <ellipse cx="160" cy="202" rx="132" ry="16" fill="#ea580c" />
+            {/* Table front edge */}
+            <path d="M 28 202 L 28 226 Q 160 250 292 226 L 292 202 Q 160 220 28 202 Z" fill="#9a3412" />
+            <path d="M 28 202 Q 160 220 292 202" stroke="#7c2d12" strokeWidth="1.5" fill="none" opacity="0.5" />
+            {/* Table legs */}
+            <rect x="46" y="224" width="10" height="16" rx="3" fill="#7c2d12" />
+            <rect x="264" y="224" width="10" height="16" rx="3" fill="#7c2d12" />
+
+            {/* ---------- PLATE (empty, drawn on table) ---------- */}
+            <g>
+              {/* Plate shadow */}
+              <ellipse cx="160" cy="203" rx="52" ry="15" fill="#7c2d12" opacity="0.28" />
+              {/* Plate outer rim */}
+              <ellipse cx="160" cy="199" rx="52" ry="15" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
+              {/* Plate inner well */}
+              <ellipse cx="160" cy="199" rx="38" ry="10.5" fill="#e2e8f0" />
+              <ellipse cx="160" cy="199" rx="34" ry="9" fill="#f1f5f9" />
+              {/* Food on plate when served */}
+              {plateFood ? (
+                <text
+                  x="160"
+                  y="205"
+                  textAnchor="middle"
+                  fontSize="22"
+                  className="animate-in zoom-in duration-300"
+                >
+                  {plateFood}
+                </text>
+              ) : (
+                <text x="160" y="203" textAnchor="middle" fontSize="8" fill="#94a3b8" fontWeight="700">
+                  dĩa trống
+                </text>
+              )}
+            </g>
+
+            {/* ---------- ANIMAL HEAD (ONLY THIS CHANGES PER ROUND) ---------- */}
+            <g
+              transform="translate(110, 34)"
+              className={
                 mood === 'happy'
                   ? 'animate-bounce'
                   : mood === 'eating'
                   ? 'animate-pulse'
-                  : mood === 'angry'
-                  ? 'animate-shake'
-                  : mood === 'sad'
+                  : mood === 'angry' || mood === 'sad'
                   ? 'animate-shake'
                   : 'animate-soft-bounce'
-              }`}
+              }
+              style={{ transformOrigin: 'center' }}
             >
-              {animalFace[mood]}
-            </div>
-            {/* Knife (right hand) */}
-            <span className="absolute -right-8 top-4 text-2xl select-none" style={{ transform: 'rotate(25deg)' }}>
-              🔪
-            </span>
+              <foreignObject x="0" y="0" width="100" height="100">
+                <div className="flex items-center justify-center w-full h-full">
+                  <AnimalHead animal={animal} mood={mood} />
+                </div>
+              </foreignObject>
+            </g>
 
-            {/* Emotion sparkles */}
+            {/* ---------- EMOTION EFFECTS ---------- */}
             {mood === 'happy' && (
               <>
-                <span className="absolute -top-2 -left-6 text-xl animate-bounce">✨</span>
-                <span className="absolute -top-2 -right-6 text-xl animate-bounce" style={{ animationDelay: '150ms' }}>
-                  ✨
-                </span>
+                <text x="96" y="66" fontSize="16" className="animate-bounce">✨</text>
+                <text x="216" y="66" fontSize="16" className="animate-bounce">✨</text>
+                <text x="160" y="30" fontSize="18" className="animate-bounce">❤️</text>
               </>
             )}
             {(mood === 'sad' || mood === 'angry') && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xl animate-pulse">
+              <text x="160" y="32" fontSize="18" className="animate-pulse" textAnchor="middle">
                 {mood === 'sad' ? '💧' : '💢'}
-              </span>
+              </text>
             )}
-          </div>
-
-          <div className="text-[11px] font-black text-amber-800 mt-1">{animal.name}</div>
+          </svg>
         </div>
 
-        {/* Empty plate in front of the animal */}
-        <div className="flex justify-center mb-1">
-          <div className="relative w-28 h-14 rounded-full bg-white border-4 border-slate-300 shadow-md flex items-center justify-center">
-            {/* Inner plate rim */}
-            <div className="absolute inset-1.5 rounded-full border-2 border-slate-200" />
-            {plateFood ? (
-              <span className="relative text-3xl animate-in zoom-in duration-300">{plateFood}</span>
-            ) : (
-              <span className="relative text-[10px] font-bold text-slate-400">Dĩa trống</span>
-            )}
-          </div>
+        {/* Animal name label */}
+        <div className="text-center -mt-1 mb-1">
+          <span className="inline-block px-3 py-1 rounded-full bg-amber-200/80 text-[10px] font-black text-amber-900">
+            {animal.name}
+          </span>
         </div>
-
-        {/* Table line */}
-        <div className="h-3 rounded-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 shadow-md mx-2" />
       </div>
 
       {/* ===== QUESTION: MEANING TO FIND ===== */}
