@@ -52,7 +52,13 @@ export type GameType =
   | 'sentence_cloze'
   | 'sentence_detective'
   | 'vocab_adventure'
-  | 'sentence_adventure';
+  | 'sentence_adventure'
+  // 🎮 5 GAME VUI CHƠI MỚI (Play-to-Learn, không áp lực)
+  | 'bubble_pop'
+  | 'mystery_garden'
+  | 'treasure_hunt'
+  | 'zoo_feeding'
+  | 'secret_animal';
 
 export interface GameScoreResult {
   gameType: GameType;

@@ -13,6 +13,13 @@ import { SoundDetectiveGame } from '../games/SoundDetectiveGame';
 import { SpellingBeeGame } from '../games/SpellingBeeGame';
 import { SentenceBuilderGame } from '../games/SentenceBuilderGame';
 
+// 🎮 5 Game Vui Chơi Mới (Play-to-Learn)
+import { BubblePopGame } from '../games/BubblePopGame';
+import { MysteryGardenGame } from '../games/MysteryGardenGame';
+import { TreasureHuntGame } from '../games/TreasureHuntGame';
+import { ZooFeedingGame } from '../games/ZooFeedingGame';
+import { SecretAnimalGame } from '../games/SecretAnimalGame';
+
 export interface GameRouterProps {
   activeGame: GameType;
   effectiveWords: WordItem[];
@@ -85,6 +92,17 @@ export const GameRouter: React.FC<GameRouterProps> = ({
       return <SoundDetectiveGame {...commonProps} />;
     case 'spelling_bee':
       return <SpellingBeeGame {...commonProps} />;
+    // 🎮 5 Game Vui Chơi Mới (Play-to-Learn)
+    case 'bubble_pop':
+      return <BubblePopGame {...commonProps} />;
+    case 'mystery_garden':
+      return <MysteryGardenGame {...commonProps} />;
+    case 'treasure_hunt':
+      return <TreasureHuntGame {...commonProps} />;
+    case 'zoo_feeding':
+      return <ZooFeedingGame {...commonProps} />;
+    case 'secret_animal':
+      return <SecretAnimalGame {...commonProps} />;
     case 'sentence_builder':
       return (
         <SentenceBuilderGame
