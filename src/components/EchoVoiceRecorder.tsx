@@ -219,7 +219,6 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [speechUnavailable, setSpeechUnavailable] = useState(false);
   const [recognitionReady, setRecognitionReady] = useState(false);
-  const [micLevel, setMicLevel] = useState(0);
   const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
   const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
   const [isPlayingUser, setIsPlayingUser] = useState(false);
@@ -236,13 +235,6 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
   const recognitionErrorRef = useRef<string>('');
   const recognitionEndedRef = useRef<boolean>(false);
   const recognizedTranscriptRef = useRef<string>('');
-  // VAD (Voice Activity Detection) — tự dừng khi bé nói xong
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const vadFrameRef = useRef<number | null>(null);
-  const vadStartRef = useRef<number>(0);
-  const vadHeardSpeechRef = useRef<boolean>(false);
-  const vadSilenceStartRef = useRef<number>(0);
-  const vadVolumeRef = useRef<number>(0);
 
   // Clean up recorded blob URL on unmount
   useEffect(() => {
@@ -252,15 +244,6 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
       }
       if (timerRef.current) {
         clearInterval(timerRef.current);
-      }
-      // Giải phóng VAD
-      if (vadFrameRef.current !== null) {
-        cancelAnimationFrame(vadFrameRef.current);
-        vadFrameRef.current = null;
-      }
-      if (audioCtxRef.current) {
-        void audioCtxRef.current.close().catch(() => {});
-        audioCtxRef.current = null;
       }
       if (recognitionRef.current) {
         try {
@@ -428,18 +411,16 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
               scoreNow();
             }, 400);
           };
-          // Yêu cầu recognition dừng & trả kết quả cuối.
-          // KHÔNG throw nếu đã dừng sẵn — onend vẫn bắn và chấm điểm.
+          // Yêu cầu recognition dừng & trả kết quả cuối
           try {
             recognition.stop();
           } catch {
-            // recognition đã tự dừng → onend đã bắn hoặc sẽ bắn ngay
+            // recognition có thể đã tự dừng → onend sẽ vẫn bắn
           }
-          // Dự phòng: Web Speech cần thời gian gửi audio lên server & nhận text.
-          // VAD dừng sớm hơn 6s nên transcript có thể về muộn → chờ tới 5s.
+          // Dự phòng tuyệt đối: chấm sau 3000ms dù onend không bắn
           window.setTimeout(() => {
             scoreNow();
-          }, 5000);
+          }, 3000);
         } else {
           // Trình duyệt không hỗ trợ Speech Recognition → chấm ngay
           scoreNow();
@@ -510,97 +491,24 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
       recognitionErrorRef.current = '';
       recognitionEndedRef.current = false;
 
-      // ===== VAD: TỰ DỪNG KHI BÉ NÓI XONG =====
-      // LƯU Ý QUAN TRỌNG: VAD chỉ được dừng MediaRecorder (file ghi âm).
-      // TUYỆT ĐỐI KHÔNG gọi recognition.stop() ở đây — Web Speech API cần thêm
-      // vài giây để server nhận dạng xong; huỷ sớm sẽ làm transcript RỖNG.
-      // Việc stop recognition được xử lý an toàn trong mediaRecorder.onstop.
-      const audioCtx = new AudioContext();
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 512;
-      const micSource = audioCtx.createMediaStreamSource(stream);
-      micSource.connect(analyser);
-      audioCtxRef.current = audioCtx;
-      const vadData = new Uint8Array(analyser.frequencyBinCount);
-
-      vadStartRef.current = Date.now();
-      vadHeardSpeechRef.current = false;
-      vadSilenceStartRef.current = 0;
-      let frameCount = 0;
-
-      const SPEECH_THRESHOLD = 12; // mức âm lượng coi là "đang nói"
-      const SILENCE_MS = 1200; // ngừng nói 1.2s → coi là xong (đủ dài để không cắt lời bé)
-      const NO_SPEECH_TIMEOUT_MS = 3500; // không nói gì quá 3.5s → dừng
-      const MAX_MS = 7000; // trần tuyệt đối
-
-      const vadLoop = () => {
-        analyser.getByteTimeDomainData(vadData);
-        let peak = 0;
-        for (let i = 0; i < vadData.length; i++) {
-          const v = Math.abs(vadData[i] - 128);
-          if (v > peak) peak = v;
-        }
-        vadVolumeRef.current = peak;
-
-        // Cập nhật vòng sáng micro (~12fps để không lag)
-        if (frameCount++ % 5 === 0) {
-          setMicLevel(Math.min(100, Math.round((peak / 60) * 100)));
-        }
-
-        const now = Date.now();
-        const elapsed = now - vadStartRef.current;
-
-        if (peak >= SPEECH_THRESHOLD) {
-          vadHeardSpeechRef.current = true;
-          vadSilenceStartRef.current = 0;
-        } else if (vadHeardSpeechRef.current) {
-          if (vadSilenceStartRef.current === 0) {
-            vadSilenceStartRef.current = now;
-          } else if (now - vadSilenceStartRef.current >= SILENCE_MS) {
-            stopRecording();
-            return;
-          }
-        } else if (elapsed >= NO_SPEECH_TIMEOUT_MS) {
-          stopRecording();
-          return;
-        }
-
-        if (elapsed >= MAX_MS) {
-          stopRecording();
-          return;
-        }
-
-        vadFrameRef.current = requestAnimationFrame(vadLoop);
-      };
-      vadFrameRef.current = requestAnimationFrame(vadLoop);
-
-      // Cập nhật số giây hiển thị
+      // Đếm ngược tối đa 6 giây rồi tự dừng.
+      // Tăng từ 4s → 6s vì macOS/Chrome cần ~1-2s khởi động speech service;
+      // 4s cũ chỉ còn ~2s thu thật → bé nói không kịp.
       let sec = 0;
       timerRef.current = window.setInterval(() => {
         sec++;
         setRecordingSeconds(sec);
+        if (sec >= 6) {
+          stopRecording();
+        }
       }, 1000);
     } catch {
       setErrorMsg('Vui lòng cho phép quyền truy cập Micro (Microphone) trong trình duyệt để bé thu âm nhé!');
     }
   };
 
-  /** Dừng & giải phóng bộ đo âm lượng VAD */
-  const stopVad = () => {
-    if (vadFrameRef.current !== null) {
-      cancelAnimationFrame(vadFrameRef.current);
-      vadFrameRef.current = null;
-    }
-    if (audioCtxRef.current) {
-      void audioCtxRef.current.close().catch(() => {});
-      audioCtxRef.current = null;
-    }
-    setMicLevel(0);
-  };
-
   // Dừng thu âm
   const stopRecording = () => {
-    stopVad();
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
@@ -728,48 +636,24 @@ export const EchoVoiceRecorder: React.FC<EchoVoiceRecorderProps> = ({
               <button
                 type="button"
                 onClick={isRecording ? stopRecording : startRecording}
-                className={`relative w-11 h-11 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-md ${
+                className={`w-11 h-11 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-md ${
                   isRecording
-                    ? 'bg-rose-500 text-white'
+                    ? 'bg-rose-500 text-white animate-pulse ring-4 ring-rose-200'
                     : 'bg-gradient-to-tr from-purple-600 to-pink-500 text-white hover:scale-105 active:scale-95'
                 }`}
-                style={
-                  isRecording
-                    ? {
-                        boxShadow: `0 0 0 ${Math.round(
-                          3 + (micLevel / 100) * 10
-                        )}px rgba(244,63,94,${0.15 + (micLevel / 100) * 0.45})`,
-                        transform: `scale(${1 + (micLevel / 100) * 0.12})`,
-                        transition: 'box-shadow 80ms linear, transform 80ms linear',
-                      }
-                    : undefined
-                }
               >
                 {isRecording ? <Square size={18} /> : <Mic size={22} />}
               </button>
               <span className="text-xs font-black text-slate-800">
-                {isRecording ? `Đang thu... ${recordingSeconds}s` : '2. Thu Âm Giọng Bé'}
+                {isRecording ? `Đang thu... ${Math.max(0, 6 - recordingSeconds)}s` : '2. Thu Âm Giọng Bé'}
               </span>
               <span className="text-[10px] font-semibold text-purple-600">
                 {isRecording
-                  ? micLevel > 15
-                    ? `🔊 Đang nghe... ${Math.round(micLevel)}%`
-                    : recognitionReady
-                    ? '🎤 Bé nói đi — nói xong sẽ tự dừng!'
-                    : '⏳ Đang bật micro... chờ 1 giây'
+                  ? recognitionReady
+                    ? '🎤 Micro sẵn sàng — bé nói đi!'
+                    : '⏳ Đang bật micro... bé chờ 1 giây nhé'
                   : 'Chạm Mic để nói'}
               </span>
-              {/* Thanh đo âm lượng thời gian thực */}
-              {isRecording && (
-                <div className="w-full px-1 mt-0.5">
-                  <div className="h-1.5 w-full rounded-full bg-purple-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-75"
-                      style={{ width: `${Math.min(100, micLevel)}%` }}
-                    />
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <>
