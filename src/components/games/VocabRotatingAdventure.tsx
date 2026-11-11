@@ -17,11 +17,27 @@ interface VocabRotatingAdventureProps {
   onProfileUpdated: () => void;
 }
 
-export type MiniGameVariant = 'bubble_match' | 'sound_detective' | 'scramble' | 'spelling';
+export type MiniGameVariant =
+  | 'bubble_match'
+  | 'sound_detective'
+  | 'scramble'
+  | 'spelling'
+  // 🎮 5 game mới (play-to-learn + chính tả)
+  | 'missing_letters'
+  | 'spelling_detective'
+  | 'secret_animal'
+  | 'zoo_feeding'
+  | 'bubble_pop';
 
 const getSkillForVariant = (variant: MiniGameVariant): SkillType => {
   if (variant === 'sound_detective') return 'listening';
-  if (variant === 'scramble' || variant === 'spelling') return 'spelling';
+  if (
+    variant === 'scramble' ||
+    variant === 'spelling' ||
+    variant === 'missing_letters' ||
+    variant === 'spelling_detective'
+  )
+    return 'spelling';
   return 'reading';
 };
 
@@ -66,14 +82,45 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   // States for Spelling Bee
   const [typingInput, setTypingInput] = useState('');
 
+  // States for Missing Letters (Chữ cái bị mất)
+  const [mlMasked, setMlMasked] = useState<{ char: string; isHidden: boolean; filled: string }[]>([]);
+  const [mlActive, setMlActive] = useState(0);
+  const [mlKeys, setMlKeys] = useState<string[]>([]);
+  const [mlShake, setMlShake] = useState<string | null>(null);
+
+  // States for Spelling Detective (Thám tử chính tả)
+  const [sdOptions, setSdOptions] = useState<{ text: string; isCorrect: boolean }[]>([]);
+
+  // States for Secret Animal (Vị khách bí mật)
+  const [saClues, setSaClues] = useState(0);
+  const [saAudioRevealed, setSaAudioRevealed] = useState(false);
+
+  // States for Zoo Feeding (Bữa tiệc sở thú)
+  const [zfMood, setZfMood] = useState<'waiting' | 'eating' | 'happy' | 'sad' | 'angry'>('waiting');
+  const [zfPlate, setZfPlate] = useState<string | null>(null);
+  const [zfWrong, setZfWrong] = useState(0);
+
+  // States for Bubble Pop (Bong bóng từ vựng)
+  const [bpMood, setBpMood] = useState<'idle' | 'correct' | 'wrong'>('idle');
+
   // Results
   const [correctWords, setCorrectWords] = useState<string[]>([]);
   const [wrongWords, setWrongWords] = useState<string[]>([]);
   const [roundHasError, setRoundHasError] = useState(false);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
 
-  // 4 Mini-Games rotating across questions (Memory Flip đã được đưa ra khỏi vòng luân phiên theo yêu cầu)
-  const VARIANT_CYCLE: MiniGameVariant[] = ['bubble_match', 'sound_detective', 'scramble', 'spelling'];
+  // 9 Mini-Games rotating across questions (Memory Flip đã được đưa ra khỏi vòng luân phiên theo yêu cầu)
+  const VARIANT_CYCLE: MiniGameVariant[] = [
+    'bubble_match',
+    'sound_detective',
+    'scramble',
+    'spelling',
+    'missing_letters',
+    'spelling_detective',
+    'secret_animal',
+    'zoo_feeding',
+    'bubble_pop',
+  ];
 
   const setupRound = (roundNum: number, queue: WordItem[] = wordQueue) => {
     if (queue.length === 0) return;
@@ -101,6 +148,120 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
 
     // Prepare spelling input
     setTypingInput('');
+
+    // ===== Prepare Missing Letters =====
+    const mlChars = target.word.toLowerCase().split('');
+    const mlHideCount = mlChars.length <= 4 ? 1 : mlChars.length <= 7 ? 2 : 3;
+    const mlCandidates: number[] = [];
+    for (let i = 1; i < mlChars.length - 1; i++) mlCandidates.push(i);
+    if (mlCandidates.length === 0) mlChars.forEach((_, i) => mlCandidates.push(i));
+    const mlHidden: number[] = [];
+    const mlUsedLetters = new Set<string>();
+    for (const idx of shuffleList(mlCandidates)) {
+      if (mlHidden.length >= mlHideCount) break;
+      if (mlUsedLetters.has(mlChars[idx])) continue;
+      mlUsedLetters.add(mlChars[idx]);
+      mlHidden.push(idx);
+    }
+    if (mlHidden.length === 0 && mlCandidates.length > 0) mlHidden.push(mlCandidates[0]);
+    setMlMasked(
+      mlChars.map((ch, i) => ({ char: ch, isHidden: mlHidden.includes(i), filled: '' }))
+    );
+    setMlActive(mlHidden[0] ?? 0);
+    const mlCorrect = Array.from(new Set(mlHidden.map((i) => mlChars[i])));
+    const mlAll = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    const mlPool = mlAll.filter((l) => !mlCorrect.includes(l));
+    setMlKeys(shuffleList([...mlCorrect, ...shuffleList(mlPool).slice(0, 6)]));
+    setMlShake(null);
+
+    // ===== Prepare Spelling Detective (lỗi tinh tế: đổi 1 chữ) =====
+    const VOWELS = ['a', 'e', 'i', 'o', 'u'];
+    const CONS_GROUPS: string[][] = [
+      ['b', 'p', 'd'],
+      ['c', 'k', 'g', 'q'],
+      ['m', 'n'],
+      ['f', 'v'],
+      ['s', 'z', 'x'],
+      ['t', 'd'],
+      ['l', 'r'],
+      ['w', 'v'],
+    ];
+    const makeSubtle = (word: string): string => {
+      const base = word.toLowerCase();
+      const tryOnce = (): string | null => {
+        const L = base.split('');
+        const vowelPos = L.map((c, i) => (VOWELS.includes(c) ? i : -1)).filter((i) => i >= 0);
+        const canSwap = vowelPos.length >= 2;
+        const strategies: Array<'vowel' | 'consonant' | 'swap'> = ['vowel', 'consonant'];
+        if (canSwap) strategies.push('swap');
+        if (vowelPos.length === 0) {
+          const k = strategies.indexOf('vowel');
+          if (k >= 0) strategies.splice(k, 1);
+        }
+        const strat = strategies[Math.floor(Math.random() * strategies.length)];
+        if (strat === 'swap' && canSwap) {
+          const pairs: Array<[number, number]> = [];
+          for (let i = 0; i < vowelPos.length; i++)
+            for (let j = i + 1; j < vowelPos.length; j++)
+              if (L[vowelPos[i]] !== L[vowelPos[j]]) pairs.push([vowelPos[i], vowelPos[j]]);
+          if (pairs.length === 0) return null;
+          const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
+          [L[a], L[b]] = [L[b], L[a]];
+          return L.join('');
+        }
+        if (strat === 'vowel' && vowelPos.length > 0) {
+          const pos = vowelPos[Math.floor(Math.random() * vowelPos.length)];
+          const others = VOWELS.filter((v) => v !== L[pos]);
+          L[pos] = others[Math.floor(Math.random() * others.length)];
+          return L.join('');
+        }
+        const consPos = L.map((c, i) => (VOWELS.includes(c) ? -1 : i)).filter((i) => i >= 0);
+        for (const pos of shuffleList(consPos)) {
+          const cur = L[pos];
+          const grp = CONS_GROUPS.find((g) => g.includes(cur));
+          const cands = grp ? grp.filter((c) => c !== cur) : 'bcdfghjklmnpqrstvwxyz'.split('').filter((c) => c !== cur);
+          if (cands.length > 0) {
+            L[pos] = cands[Math.floor(Math.random() * cands.length)];
+            return L.join('');
+          }
+        }
+        return null;
+      };
+      for (let i = 0; i < 25; i++) {
+        const r = tryOnce();
+        if (r && r !== base) return r;
+      }
+      const L2 = base.split('');
+      const vi = L2.findIndex((c) => VOWELS.includes(c));
+      if (vi >= 0) {
+        L2[vi] = VOWELS.filter((v) => v !== L2[vi])[0];
+        return L2.join('');
+      }
+      return base + 's';
+    };
+    const wrongA = makeSubtle(target.word);
+    let wrongB = makeSubtle(target.word);
+    let guardB = 0;
+    while (wrongB === wrongA && guardB < 12) {
+      wrongB = makeSubtle(target.word);
+      guardB++;
+    }
+    setSdOptions(
+      shuffleList([
+        { text: target.word, isCorrect: true },
+        { text: wrongA, isCorrect: false },
+        { text: wrongB, isCorrect: false },
+      ])
+    );
+
+    // ===== Prepare Secret Animal / Zoo / Bubble =====
+    setSaClues(1);
+    setSaAudioRevealed(false);
+    setZfMood('waiting');
+    setZfPlate(null);
+    setZfWrong(0);
+    setBpMood('idle');
+
     setSelectedOption(null);
     setIsAnswered(false);
     setRoundHasError(false);
@@ -237,6 +398,18 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
         return { name: 'Xếp Chữ Thần Tốc', icon: '🚂', instruction: 'Chạm các chữ cái để ghép thành từ tiếng Anh:' };
       case 'spelling':
         return { name: 'Thử Thách Chính Tả', icon: '🐝', instruction: 'Nghe phát âm và gõ lại từ vựng chính xác:' };
+      case 'missing_letters':
+        return { name: 'Chữ Cái Bị Mất', icon: '🔤', instruction: 'Điền các chữ cái còn thiếu để hoàn thành từ:' };
+      case 'spelling_detective':
+        return { name: 'Thám Tử Chính Tả', icon: '⭐', instruction: 'Tìm ra từ được viết ĐÚNG chính tả:' };
+      case 'secret_animal':
+        return { name: 'Vị Khách Bí Mật', icon: '🕵️‍♀️', instruction: 'Dùng gợi ý để đoán từ bí ẩn:' };
+      case 'zoo_feeding':
+        return { name: 'Bữa Tiệc Sở Thú', icon: '🍽️', instruction: 'Dịch nghĩa và cho bạn thú ăn đúng món:' };
+      case 'bubble_pop':
+        return { name: 'Bong Bóng Từ Vựng', icon: '🫧', instruction: 'Chạm bong bóng có từ tiếng Anh khớp nghĩa:' };
+      default:
+        return { name: 'Trò Chơi', icon: '🎮', instruction: 'Chọn đáp án đúng:' };
     }
   };
 
@@ -270,7 +443,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
           <span>Câu {currentRound}: <strong className="text-indigo-700">{variantInfo.name}</strong></span>
         </span>
         <span className="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white font-extrabold text-[11px]">
-          Luân phiên 4 Game 🔄
+          Luân phiên 9 Game 🔄
         </span>
       </div>
 
@@ -485,6 +658,411 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VARIANT 5: MISSING LETTERS (Chữ cái bị mất)                */}
+      {/* ======================================================== */}
+      {currentVariant === 'missing_letters' && (
+        <div className="space-y-5">
+          <div className="bg-white rounded-3xl p-5 border-4 border-violet-100 shadow-xl text-center">
+            <div className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-1">
+              {mlMasked.some((c) => c.isHidden) ? 'Điền chữ cái còn thiếu' : 'Từ đã hoàn chỉnh'}
+            </div>
+            <h3 className="text-xl font-black text-slate-800 flex items-center justify-center gap-2">
+              <span>{currentWord.emoji}</span>
+              <span>{currentWord.meaningVi}</span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-1 font-mono">{currentWord.phonetic}</p>
+          </div>
+
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap">
+            {mlMasked.map((c, i) => {
+              const isActive = i === mlActive && !isAnswered;
+              const display = c.isHidden ? c.filled : c.char;
+              return (
+                <div
+                  key={i}
+                  onClick={() => {
+                    if (!isAnswered && c.isHidden && !c.filled) setMlActive(i);
+                  }}
+                  className={`flex items-center justify-center rounded-2xl border-3 font-black transition-all ${
+                    c.isHidden
+                      ? isAnswered
+                        ? 'w-10 h-13 sm:w-11 sm:h-15 text-xl bg-emerald-500 border-emerald-600 text-white'
+                        : isActive
+                        ? 'w-10 h-13 sm:w-11 sm:h-15 text-xl bg-amber-50 border-amber-500 text-slate-900 ring-4 ring-amber-200 animate-pulse cursor-pointer'
+                        : 'w-10 h-13 sm:w-11 sm:h-15 text-xl bg-white border-violet-300 text-slate-900 cursor-pointer'
+                      : 'w-8 h-11 sm:w-9 sm:h-13 text-lg bg-slate-100 border-slate-200 text-slate-500'
+                  }`}
+                >
+                  {display || (c.isHidden ? '_' : '')}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            {mlKeys.map((key) => {
+              const slots = mlMasked.filter((c) => c.isHidden && c.char === key);
+              const fullyUsed = slots.length > 0 && slots.every((c) => c.filled === key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  disabled={isAnswered || fullyUsed}
+                  onClick={() => {
+                    let slot = mlActive;
+                    if (!mlMasked[slot]?.isHidden || mlMasked[slot]?.filled) {
+                      const empty = mlMasked.findIndex((c) => c.isHidden && !c.filled);
+                      if (empty === -1) return;
+                      slot = empty;
+                      setMlActive(empty);
+                    }
+                    if (mlMasked[slot].char === key) {
+                      const updated = mlMasked.map((c, i) => (i === slot ? { ...c, filled: key } : c));
+                      setMlMasked(updated);
+                      const next = updated.findIndex((c) => c.isHidden && !c.filled);
+                      if (next === -1) {
+                        handleAnswerSubmit(true);
+                      } else {
+                        setMlActive(next);
+                      }
+                    } else {
+                      setMlShake(key);
+                      setTimeout(() => setMlShake(null), 600);
+                      handleAnswerSubmit(false);
+                    }
+                  }}
+                  className={`py-3 rounded-2xl font-black text-lg uppercase transition-all shadow-sm active:scale-95 cursor-pointer ${
+                    fullyUsed
+                      ? 'bg-slate-100 border-2 border-slate-200 text-slate-300'
+                      : mlShake === key
+                      ? 'bg-rose-100 border-2 border-rose-400 text-rose-700 animate-shake'
+                      : 'bg-white border-2 border-violet-200 text-violet-900 hover:border-violet-400 hover:bg-violet-50'
+                  }`}
+                >
+                  {key}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-xs text-slate-400">{variantInfo.instruction}</p>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VARIANT 6: SPELLING DETECTIVE (Thám tử chính tả)           */}
+      {/* ======================================================== */}
+      {currentVariant === 'spelling_detective' && (
+        <div className="space-y-5">
+          <div className="bg-white rounded-3xl p-5 border-4 border-amber-100 shadow-xl text-center">
+            <div className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">
+              Từ nào viết ĐÚNG chính tả?
+            </div>
+            <h3 className="text-xl font-black text-slate-800 flex items-center justify-center gap-2">
+              <span>{currentWord.emoji}</span>
+              <span>{currentWord.meaningVi}</span>
+            </h3>
+            <button
+              onClick={() => playWordAudio(currentWord.word, currentWord.audioUrl)}
+              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold transition-all cursor-pointer"
+            >
+              <Volume2 size={14} /> Nghe phát âm
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {sdOptions.map((opt) => {
+              const showCorrect = isAnswered && opt.isCorrect;
+              const showWrong = isAnswered && !opt.isCorrect;
+              return (
+                <button
+                  key={opt.text}
+                  type="button"
+                  disabled={isAnswered}
+                  onClick={() => handleAnswerSubmit(opt.isCorrect)}
+                  className={`w-full p-4 rounded-3xl border-3 font-black text-xl tracking-wide transition-all shadow-sm flex items-center justify-between active:scale-98 cursor-pointer ${
+                    showCorrect
+                      ? 'bg-emerald-500 border-emerald-600 text-white ring-4 ring-emerald-200'
+                      : showWrong
+                      ? 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'
+                      : 'bg-white border-amber-200 text-slate-800 hover:border-amber-400 hover:bg-amber-50'
+                  }`}
+                >
+                  <span className="capitalize">
+                    {showCorrect && <span className="mr-1.5">✓</span>}
+                    {opt.text}
+                  </span>
+                  {showCorrect && <span className="text-xl">⭐</span>}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-xs text-slate-400">{variantInfo.instruction}</p>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VARIANT 7: SECRET ANIMAL (Vị khách bí mật)                 */}
+      {/* ======================================================== */}
+      {currentVariant === 'secret_animal' && (
+        <div className="space-y-4">
+          <div className="bg-linear-to-r from-violet-600 to-fuchsia-600 rounded-3xl p-5 text-white text-center shadow-xl">
+            <div className="text-xs font-bold uppercase tracking-wider text-purple-200 mb-1">
+              🎭 Từ bí ẩn cần tìm
+            </div>
+            <div className="text-3xl mb-1">🔍</div>
+            <div className="text-[11px] text-purple-100">
+              Đã mở {saClues}/3 gợi ý{saAudioRevealed ? ' + âm thanh' : ''}
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            {saClues >= 1 && (
+              <div className="bg-white rounded-2xl p-3.5 border-2 border-purple-100 flex items-start gap-3">
+                <span className="text-lg">🗂️</span>
+                <div>
+                  <div className="text-[10px] font-black text-purple-600 uppercase">Gợi ý 1 — Chủ đề</div>
+                  <div className="text-sm font-semibold text-slate-700">{currentWord.category}</div>
+                </div>
+              </div>
+            )}
+            {saClues >= 2 && (
+              <div className="bg-white rounded-2xl p-3.5 border-2 border-purple-100 flex items-start gap-3">
+                <span className="text-lg">📖</span>
+                <div>
+                  <div className="text-[10px] font-black text-purple-600 uppercase">Gợi ý 2 — Câu ví dụ</div>
+                  <div className="text-sm font-semibold text-slate-700">
+                    {currentWord.exampleSentence.replace(new RegExp(currentWord.word, 'gi'), '_____')}
+                  </div>
+                </div>
+              </div>
+            )}
+            {saClues >= 3 && (
+              <div className="bg-white rounded-2xl p-3.5 border-2 border-purple-100 flex items-start gap-3">
+                <span className="text-lg">💡</span>
+                <div>
+                  <div className="text-[10px] font-black text-purple-600 uppercase">Gợi ý 3 — Định nghĩa</div>
+                  <div className="text-sm font-semibold text-slate-700">{currentWord.definitionEn}</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {!saAudioRevealed && (
+            <button
+              type="button"
+              onClick={() => {
+                if (saClues < 3) {
+                  setSaClues(saClues + 1);
+                } else {
+                  setSaAudioRevealed(true);
+                  playWordAudio(currentWord.word, currentWord.audioUrl);
+                }
+              }}
+              className="w-full py-2.5 rounded-2xl border-2 border-dashed border-purple-300 text-purple-700 hover:bg-purple-50 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Lightbulb size={14} />
+              {saClues < 3 ? 'Mở thêm gợi ý' : 'Mở gợi ý phát âm (cuối cùng)'}
+            </button>
+          )}
+
+          {saAudioRevealed && (
+            <button
+              onClick={() => playWordAudio(currentWord.word, currentWord.audioUrl)}
+              className="w-full py-2.5 rounded-2xl bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Volume2 size={14} /> Nghe lại phát âm
+            </button>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            {options.map((opt) => {
+              const isTarget = opt.id === currentWord.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={isAnswered}
+                  onClick={() => handleAnswerSubmit(isTarget)}
+                  className={`p-4 rounded-3xl border-3 font-black text-sm transition-all shadow-sm active:scale-95 cursor-pointer capitalize ${
+                    isAnswered
+                      ? isTarget
+                        ? 'bg-emerald-500 border-emerald-600 text-white'
+                        : 'bg-slate-50 border-slate-200 text-slate-400 opacity-50'
+                      : 'bg-white border-purple-200 text-purple-950 hover:border-purple-400 hover:bg-purple-50'
+                  }`}
+                >
+                  {opt.word}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-xs text-slate-400">{variantInfo.instruction}</p>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VARIANT 8: ZOO FEEDING (Bữa tiệc sở thú)                   */}
+      {/* ======================================================== */}
+      {currentVariant === 'zoo_feeding' && (
+        <div className="space-y-5">
+          <div className="rounded-3xl border-4 border-amber-200 bg-linear-to-b from-amber-50 to-orange-100 p-5 text-center relative overflow-hidden">
+            <div
+              className={`text-6xl mb-2 ${
+                zfMood === 'happy' ? 'animate-bounce' : zfMood === 'sad' || zfMood === 'angry' ? 'animate-shake' : 'animate-soft-bounce'
+              }`}
+            >
+              {zfMood === 'happy' ? '🥳' : zfMood === 'eating' ? '😋' : zfMood === 'sad' ? '😢' : zfMood === 'angry' ? '😠' : '🐻'}
+            </div>
+            <div className="text-xs font-black text-amber-800 mb-2">
+              {zfMood === 'happy' ? 'Ngon quá! Cảm ơn bạn!' : zfMood === 'eating' ? 'Nhai nhai...' : zfMood === 'sad' ? 'Huhu... không đúng rồi...' : zfMood === 'angry' ? 'Mình vẫn chưa được ăn!' : 'Mình đang đói bụng...'}
+            </div>
+            <div className="inline-flex items-center justify-center w-24 h-12 rounded-full bg-white border-3 border-slate-300 shadow">
+              {zfPlate ? (
+                <span className="text-2xl animate-in zoom-in">{zfPlate}</span>
+              ) : (
+                <span className="text-[10px] font-bold text-slate-400">dĩa trống</span>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-linear-to-r from-emerald-500 to-teal-500 rounded-3xl p-4 text-white text-center shadow-lg">
+            <div className="text-[11px] font-bold uppercase text-emerald-100 mb-1">
+              Để bạn thú được ăn, bé hãy dịch từ sau sang tiếng Anh:
+            </div>
+            <h3 className="text-xl font-black flex items-center justify-center gap-2">
+              <span>{currentWord.emoji}</span>
+              <span>{currentWord.meaningVi}</span>
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5">
+            {options.map((opt) => {
+              const isTarget = opt.id === currentWord.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={isAnswered || zfMood === 'eating' || zfMood === 'happy'}
+                  onClick={() => {
+                    if (isTarget) {
+                      setZfPlate('🍎');
+                      setZfMood('eating');
+                      setTimeout(() => setZfMood('happy'), 700);
+                      handleAnswerSubmit(true);
+                    } else {
+                      const next = zfWrong + 1;
+                      setZfWrong(next);
+                      setZfMood(next >= 2 ? 'angry' : 'sad');
+                      setTimeout(() => setZfMood('waiting'), 1300);
+                      handleAnswerSubmit(false);
+                    }
+                  }}
+                  className={`p-3.5 rounded-2xl border-3 font-black text-sm transition-all shadow-sm active:scale-95 cursor-pointer capitalize min-h-[62px] ${
+                    isAnswered
+                      ? isTarget
+                        ? 'bg-emerald-500 border-emerald-600 text-white'
+                        : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'
+                      : 'bg-white border-amber-300 text-amber-950 hover:border-amber-500 hover:bg-amber-50'
+                  }`}
+                >
+                  {opt.word}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-xs text-slate-400">{variantInfo.instruction}</p>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VARIANT 9: BUBBLE POP (Bong bóng từ vựng)                  */}
+      {/* ======================================================== */}
+      {currentVariant === 'bubble_pop' && (
+        <div className="space-y-4">
+          <div className="bg-linear-to-r from-sky-500 to-cyan-500 rounded-3xl p-5 text-white text-center shadow-lg">
+            <div className="text-[11px] font-bold uppercase text-cyan-100 mb-1">
+              Chạm bong bóng từ tiếng Anh có nghĩa:
+            </div>
+            <h3 className="text-xl font-black flex items-center justify-center gap-2">
+              <span>{currentWord.emoji}</span>
+              <span>{currentWord.meaningVi}</span>
+            </h3>
+          </div>
+
+          <div
+            className={`relative rounded-3xl overflow-hidden border-4 h-[240px] ${
+              bpMood === 'wrong' ? 'border-rose-300' : bpMood === 'correct' ? 'border-emerald-300' : 'border-sky-200'
+            }`}
+            style={{
+              background:
+                bpMood === 'wrong'
+                  ? 'radial-gradient(circle at 30% 20%, #ffe4e6, #fda4af)'
+                  : bpMood === 'correct'
+                  ? 'radial-gradient(circle at 30% 20%, #d1fae5, #6ee7b7)'
+                  : 'radial-gradient(circle at 25% 18%, #f0f9ff, #93c5fd)',
+            }}
+          >
+            {options.slice(0, 3).map((opt, i) => {
+              const isTarget = opt.id === currentWord.id;
+              const isCorrectBubble = bpMood === 'correct' && isTarget;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={isAnswered}
+                  onClick={() => {
+                    if (isTarget) {
+                      setBpMood('correct');
+                      handleAnswerSubmit(true);
+                    } else {
+                      setBpMood('wrong');
+                      setTimeout(() => setBpMood('idle'), 700);
+                      handleAnswerSubmit(false);
+                    }
+                  }}
+                  className="absolute rounded-full flex items-center justify-center font-black cursor-pointer select-none border-0 p-0"
+                  style={{
+                    left: `${26 + i * 24}%`,
+                    top: `${34 + (i % 2) * 22}%`,
+                    width: '86px',
+                    height: '86px',
+                    transform: `translate(-50%, -50%) scale(${isCorrectBubble ? 1.15 : 1})`,
+                    background: isCorrectBubble
+                      ? 'radial-gradient(circle at 32% 26%, #fff, #d1fae5 12%, #34d399 45%, #059669 78%, #047857)'
+                      : 'radial-gradient(circle at 32% 26%, #fff, #e0f2fe 12%, #60a5fa 46%, #3b82f6 76%, #1d4ed8)',
+                    boxShadow:
+                      'inset -8px -10px 20px rgba(29,78,216,0.5), inset 6px 6px 14px rgba(255,255,255,0.85), 0 10px 20px rgba(59,130,246,0.35)',
+                  }}
+                >
+                  <span
+                    className="absolute rounded-full pointer-events-none"
+                    style={{
+                      top: '12%',
+                      left: '20%',
+                      width: '32%',
+                      height: '24%',
+                      background:
+                        'radial-gradient(ellipse at center, rgba(255,255,255,0.98), rgba(255,255,255,0))',
+                    }}
+                  />
+                  <span
+                    className="relative z-10 px-1.5 text-center leading-tight capitalize text-white"
+                    style={{
+                      fontSize: opt.word.length > 8 ? '11px' : opt.word.length > 5 ? '13px' : '15px',
+                      textShadow: '0 2px 4px rgba(0,0,0,0.35)',
+                    }}
+                  >
+                    {opt.word}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-center text-xs text-slate-400">{variantInfo.instruction}</p>
         </div>
       )}
 
