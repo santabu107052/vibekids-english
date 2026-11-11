@@ -64,8 +64,12 @@ export const MissingLettersGame: React.FC<MissingLettersGameProps> = ({
     setCurrentWord(target);
 
     const chars = target.word.toLowerCase().split('');
-    // Che 1 chữ (từ ngắn <=5) hoặc 2 chữ (từ dài >5), ưu tiên không che chữ đầu/cuối
-    const hideCount = chars.length <= 5 ? 1 : 2;
+    // Độ khó theo độ dài từ:
+    //  - Ngắn (<=4 ký tự): ẩn 1 chữ
+    //  - Trung bình (5-7 ký tự): ẩn 2 chữ
+    //  - Dài (>=8 ký tự): ẩn 3 chữ
+    // Ưu tiên không ẩn chữ đầu/cuối để bé còn nhận diện được từ.
+    const hideCount = chars.length <= 4 ? 1 : chars.length <= 7 ? 2 : 3;
     let candidates: number[] = [];
     for (let i = 1; i < chars.length - 1; i++) candidates.push(i);
     // Từ quá ngắn (<=2 ký tự) không có vị trí giữa → cho phép che chữ cuối

@@ -55,68 +55,113 @@ export const SpellingDetectiveGame: React.FC<SpellingDetectiveGameProps> = ({
     return result;
   };
 
-  /** Tạo biến thể sai chính tả — LUÔN khác từ gốc (vòng lặp thử tối đa 20 lần) */
+  /**
+   * Tạo biến thể SAI TINH TẾ — chỉ đổi ĐÚNG 1 chữ cái so với từ gốc.
+   * Quy tắc sư phạm:
+   *  1. Nguyên âm → đổi thành nguyên âm KHÁC (a↔e↔i↔o↔u)
+   *  2. Phụ âm  → đổi thành phụ âm KHÁC (cùng nhóm phát âm nếu có thể)
+   *  3. Nếu từ có ≥2 nguyên âm: hoán đổi vị trí 2 nguyên âm cho nhau
+   * Mục tiêu: lỗi khó phát hiện, buộc bé phải đọc kỹ từng chữ.
+   */
   const makeMisspelling = (word: string): string => {
-    const attempt = (): string => {
-      const letters = word.split('');
-      if (letters.length < 3) {
-        // Từ ngắn: thay 1 ký tự
-        const idx = Math.floor(Math.random() * letters.length);
-        const original = letters[idx];
-        const vowels = ['a', 'e', 'i', 'o', 'u'];
-        const letters26 = 'abcdefghijklmnopqrstuvwxyz'.split('').filter((c) => c !== original);
-        // Ưu tiên đổi nguyên âm khác để sai rõ ràng hơn
-        const vowelChoices = vowels.filter((v) => v !== original);
-        letters[idx] =
-          vowels.includes(original) && vowelChoices.length > 0
-            ? vowelChoices[Math.floor(Math.random() * vowelChoices.length)]
-            : letters26[Math.floor(Math.random() * letters26.length)];
+    const VOWELS = ['a', 'e', 'i', 'o', 'u'];
+    // Nhóm phụ âm dễ nhầm khi đọc/viết
+    const CONSONANT_GROUPS: string[][] = [
+      ['b', 'p', 'd'],
+      ['c', 'k', 'g', 'q'],
+      ['m', 'n'],
+      ['f', 'v'],
+      ['s', 'z', 'x'],
+      ['t', 'd'],
+      ['l', 'r'],
+      ['w', 'v'],
+      ['h', 'j'],
+      ['y', 'i'],
+    ];
+
+    const attempt = (): string | null => {
+      const letters = word.toLowerCase().split('');
+
+      // Chọn ngẫu nhiên 1 trong 3 chiến lược (đều chỉ đổi 1 chữ cái)
+      const vowelPositions = letters
+        .map((c, i) => (VOWELS.includes(c) ? i : -1))
+        .filter((i) => i >= 0);
+
+      const canSwapVowels = vowelPositions.length >= 2;
+
+      // Danh sách chiến lược khả dụng
+      const strategies: Array<'vowel' | 'consonant' | 'swap'> = ['vowel', 'consonant'];
+      if (canSwapVowels) strategies.push('swap');
+      // Nếu không có nguyên âm nào thì chỉ còn phụ âm
+      if (vowelPositions.length === 0) {
+        const idx = strategies.indexOf('vowel');
+        if (idx >= 0) strategies.splice(idx, 1);
+      }
+
+      const strategy = strategies[Math.floor(Math.random() * strategies.length)];
+
+      if (strategy === 'swap' && canSwapVowels) {
+        // Hoán đổi vị trí 2 nguyên âm KHÁC NHAU
+        const pairs: Array<[number, number]> = [];
+        for (let i = 0; i < vowelPositions.length; i++) {
+          for (let j = i + 1; j < vowelPositions.length; j++) {
+            if (letters[vowelPositions[i]] !== letters[vowelPositions[j]]) {
+              pairs.push([vowelPositions[i], vowelPositions[j]]);
+            }
+          }
+        }
+        if (pairs.length === 0) return null;
+        const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
+        [letters[a], letters[b]] = [letters[b], letters[a]];
         return letters.join('');
       }
 
-      const strategy = Math.floor(Math.random() * 3);
-      if (strategy === 0) {
-        // Hoán đổi 2 chữ cái liền nhau — chỉ chọn cặp KHÁC nhau
-        const pairs: number[] = [];
-        for (let i = 0; i < letters.length - 1; i++) {
-          if (letters[i] !== letters[i + 1]) pairs.push(i);
+      if (strategy === 'vowel' && vowelPositions.length > 0) {
+        // Đổi 1 nguyên âm thành nguyên âm khác
+        const pos = vowelPositions[Math.floor(Math.random() * vowelPositions.length)];
+        const current = letters[pos];
+        const others = VOWELS.filter((v) => v !== current);
+        letters[pos] = others[Math.floor(Math.random() * others.length)];
+        return letters.join('');
+      }
+
+      // strategy === 'consonant': đổi 1 phụ âm thành phụ âm khác
+      const consonantPositions = letters
+        .map((c, i) => (!VOWELS.includes(c) && /[a-z]/.test(c) ? i : -1))
+        .filter((i) => i >= 0);
+
+      if (consonantPositions.length === 0) return null;
+
+      // Ưu tiên chọn phụ âm thuộc nhóm dễ nhầm để lỗi tinh vi hơn
+      const shuffledPositions = [...consonantPositions].sort(() => Math.random() - 0.5);
+      for (const pos of shuffledPositions) {
+        const current = letters[pos];
+        const group = CONSONANT_GROUPS.find((g) => g.includes(current));
+        const candidates = group
+          ? group.filter((c) => c !== current)
+          : 'bcdfghjklmnpqrstvwxyz'.split('').filter((c) => c !== current);
+        if (candidates.length > 0) {
+          letters[pos] = candidates[Math.floor(Math.random() * candidates.length)];
+          return letters.join('');
         }
-        if (pairs.length === 0) return word; // toàn chữ giống nhau, thử strategy khác
-        const idx = pairs[Math.floor(Math.random() * pairs.length)];
-        [letters[idx], letters[idx + 1]] = [letters[idx + 1], letters[idx]];
-        return letters.join('');
       }
-      if (strategy === 1) {
-        // Nhân đôi 1 chữ cái không nằm sát bản sao giống nó
-        const idx = Math.floor(Math.random() * letters.length);
-        const next = letters[idx + 1];
-        if (next === letters[idx]) return word; // tránh tạo "aaa" trùng
-        letters.splice(idx, 0, letters[idx]);
-        return letters.join('');
-      }
-      // Thay 1 nguyên âm bằng nguyên âm KHÁC
-      const vowels = ['a', 'e', 'i', 'o', 'u'];
-      const vowelIdx = letters.findIndex((c) => vowels.includes(c));
-      if (vowelIdx >= 0) {
-        const current = letters[vowelIdx];
-        const others = vowels.filter((v) => v !== current);
-        letters[vowelIdx] = others[Math.floor(Math.random() * others.length)];
-        return letters.join('');
-      }
-      // Không có nguyên âm: đổi phụ âm cuối
-      const lastIdx = letters.length - 1;
-      const consonants = 'bcdfghjklmnpqrstvwxyz'.split('').filter((c) => c !== letters[lastIdx]);
-      letters[lastIdx] = consonants[Math.floor(Math.random() * consonants.length)];
-      return letters.join('');
+      return null;
     };
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 30; i++) {
       const result = attempt();
-      if (result !== word && result.length > 0) return result;
+      if (result && result !== word.toLowerCase() && result !== word) return result;
     }
-    // Fallback tuyệt đối an toàn: thêm 1 chữ cái vào cuối
-    return word + 'e';
-  };
+    // Fallback (rất hiếm): đổi nguyên âm đầu tiên
+    const letters = word.toLowerCase().split('');
+    const vi = letters.findIndex((c) => VOWELS.includes(c));
+    if (vi >= 0) {
+      const others = VOWELS.filter((v) => v !== letters[vi]);
+      letters[vi] = others[0];
+      return letters.join('');
+    }
+    return word.toLowerCase() + 's';
+  };;
 
   const setupRound = (roundNum: number, queue: WordItem[] = wordPool) => {
     if (queue.length === 0) return;
