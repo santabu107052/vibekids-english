@@ -577,7 +577,7 @@ export const ZooFeedingGame: React.FC<ZooFeedingGameProps> = ({
         <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/15" />
         <div className="relative">
           <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-100 mb-1">
-            🍎 Bạn thú muốn ăn món có nghĩa là:
+            🍎 Để bạn thú được ăn, bé hãy dịch từ sau sang tiếng Anh:
           </div>
           <h3 className="text-2xl font-black flex items-center justify-center gap-2">
             <span className="text-3xl">{currentWord.emoji}</span>
