@@ -1,0 +1,11 @@
+flowchart TD
+    A["Ý tưởng bằng tiếng Việt"] --> B["Viết prompt theo BBNR"]
+    B --> C["AI sinh hoặc sửa code"]
+    C --> D["Chạy thử trên máy"]
+    D -->|"Lỗi"| E["Copy nguyên văn lỗi<br/>dán lại cho AI"]
+    E --> C
+    D -->|"Chạy đúng"| F["Bạn nhìn bằng mắt:<br/>có đúng ý không"]
+    F -->|"Chưa đúng"| B
+    F -->|"Đúng"| G["Git commit<br/>điểm lưu game"]
+    G --> H["Deploy hoặc<br/>build lát cắt mới"]
+    H --> A

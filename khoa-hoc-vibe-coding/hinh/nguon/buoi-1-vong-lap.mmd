@@ -1,0 +1,8 @@
+flowchart LR
+    A["Bạn tả bằng tiếng Việt (BBNR)"] --> B["AI sửa file"]
+    B --> C{"Chạy test: tất cả PASS?"}
+    C -->|Không| D["Dán đoạn FAIL cho AI, bảo sửa"]
+    D --> B
+    C -->|Có| E["Bạn nhìn bằng mắt: có đúng ý không"]
+    E -->|Chưa đúng| A
+    E -->|Đúng| F["Xong lát cắt, ghi nhớ điểm lưu game"]

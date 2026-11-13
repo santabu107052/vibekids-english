@@ -1,0 +1,239 @@
+/* =========================================================
+   Giao diện khoá học Vibe Coding — dùng chung cho trang chủ,
+   từng bài giảng và trang app. Không phụ thuộc Tailwind.
+   Quy tắc: chữ dễ đọc (tương phản >= 4.5:1), dòng ngắn (<= 72 ký tự),
+   ảnh sơ đồ hiển thị to, có thể bấm mở ảnh gốc full nét.
+   ========================================================= */
+
+:root {
+  --mau-chu: #1e1b4b;
+  --mau-chu-mo: #475569;
+  --mau-chinh: #4f46e5;
+  --mau-chinh-nhat: #eef2ff;
+  --mau-nen-1: #fdf2f8;
+  --mau-nen-2: #eef2ff;
+  --vien: #e2e8f0;
+  --bo-goc: 20px;
+  --do-rong-noi-dung: 860px;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--mau-chu);
+  background: linear-gradient(160deg, var(--mau-nen-1), var(--mau-nen-2)) fixed;
+  line-height: 1.65;
+  font-size: 17px;
+}
+
+a { color: var(--mau-chinh); }
+
+/* ---------- Trang chủ ---------- */
+.trang-chu-body { display: grid; place-items: start center; padding: 40px 16px 64px; }
+
+.trang-chu { width: min(94vw, var(--do-rong-noi-dung)); }
+
+.trang-chu h1 { font-size: clamp(1.6rem, 4vw, 2.1rem); margin: 0 0 8px; }
+
+.mo-ta { margin: 0 0 28px; color: var(--mau-chu-mo); }
+
+.muc { font-size: 1.05rem; margin: 32px 0 12px; letter-spacing: 0.01em; }
+
+.danh-sach, .danh-sach-bai { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+
+.danh-sach-bai { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+.the, .the-bai {
+  display: grid;
+  gap: 4px;
+  padding: 18px 20px;
+  border-radius: var(--bo-goc);
+  background: #ffffff;
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid var(--vien);
+  box-shadow: 0 14px 30px -22px rgba(30, 27, 75, 0.55);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+  height: 100%;
+}
+
+.the:hover, .the-bai:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px -20px rgba(79, 70, 229, 0.6);
+}
+
+.the-so, .the-bai-so {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mau-chinh);
+  font-weight: 700;
+}
+
+.the-ten, .the-bai-ten { font-size: 1.08rem; font-weight: 700; }
+
+.the-mo-ta, .the-bai-mo { font-size: 0.9rem; color: var(--mau-chu-mo); }
+
+.loi-nhac { margin-top: 32px; font-size: 0.85rem; color: var(--mau-chu-mo); }
+
+/* ---------- Trang bài giảng ---------- */
+.trang-bai { padding-bottom: 56px; }
+
+.nav-bai {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 10px max(16px, calc((100vw - var(--do-rong-noi-dung)) / 2));
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--vien);
+}
+
+.nut-nav {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--mau-chinh-nhat);
+  color: var(--mau-chinh);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nut-nav:hover { background: #e0e7ff; }
+.nut-nav-tat { visibility: hidden; }
+.nut-nav-chu { background: var(--mau-chinh); color: #ffffff; }
+.nut-nav-chu:hover { background: #4338ca; }
+
+.noi-dung {
+  width: min(94vw, var(--do-rong-noi-dung));
+  margin: 28px auto 0;
+  background: #ffffff;
+  border: 1px solid var(--vien);
+  border-radius: 26px;
+  padding: clamp(20px, 4vw, 44px);
+  box-shadow: 0 24px 50px -40px rgba(30, 27, 75, 0.7);
+}
+
+.noi-dung h1 { font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.3; margin-top: 0; }
+.noi-dung h2 {
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+  margin-top: 2.2em;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--mau-chinh-nhat);
+}
+.noi-dung h3 { font-size: 1.1rem; margin-top: 1.8em; }
+.noi-dung h4 { font-size: 1rem; margin-top: 1.4em; }
+
+/* Ảnh sơ đồ: to, viền nhẹ, bấm để phóng to */
+.noi-dung img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 22px auto;
+  border-radius: 16px;
+  border: 1px solid var(--vien);
+  background: #ffffff;
+  box-shadow: 0 16px 34px -28px rgba(30, 27, 75, 0.8);
+  cursor: zoom-in;
+}
+
+.noi-dung img.anh-phong-to {
+  position: fixed;
+  inset: 12px;
+  width: auto;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  margin: auto;
+  z-index: 100;
+  cursor: zoom-out;
+  object-fit: contain;
+  background: #ffffff;
+  box-shadow: 0 30px 80px -20px rgba(30, 27, 75, 0.8);
+}
+
+body.dang-phong-to::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.72);
+  z-index: 99;
+}
+
+.noi-dung blockquote {
+  margin: 20px 0;
+  padding: 14px 18px;
+  border-left: 4px solid var(--mau-chinh);
+  background: var(--mau-chinh-nhat);
+  border-radius: 0 14px 14px 0;
+  color: #312e81;
+}
+
+.noi-dung code {
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 0.9em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.noi-dung pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 16px;
+  padding: 18px;
+  overflow-x: auto;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.noi-dung pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+
+.noi-dung table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 22px 0;
+  font-size: 0.93rem;
+  display: block;
+  overflow-x: auto;
+}
+
+.noi-dung th, .noi-dung td { border: 1px solid var(--vien); padding: 10px 12px; text-align: left; vertical-align: top; }
+.noi-dung th { background: var(--mau-chinh-nhat); color: #312e81; white-space: nowrap; }
+.noi-dung tbody tr:nth-child(even) { background: #f8fafc; }
+
+.noi-dung details {
+  margin: 18px 0;
+  padding: 12px 16px;
+  border: 1px dashed var(--mau-chinh);
+  border-radius: 14px;
+  background: #f8faff;
+}
+.noi-dung summary { cursor: pointer; font-weight: 600; color: var(--mau-chinh); }
+
+.noi-dung hr { border: 0; border-top: 1px solid var(--vien); margin: 32px 0; }
+
+.chan-trang {
+  width: min(94vw, var(--do-rong-noi-dung));
+  margin: 24px auto 0;
+  font-size: 0.8rem;
+  color: var(--mau-chu-mo);
+  text-align: center;
+}
+
+/* ---------- Di động ---------- */
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .noi-dung { border-radius: 18px; padding: 18px 16px; }
+  .nav-bai { justify-content: center; }
+  .nut-nav { font-size: 0.78rem; padding: 7px 11px; }
+}

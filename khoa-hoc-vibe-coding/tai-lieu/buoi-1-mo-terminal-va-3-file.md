@@ -11,63 +11,20 @@
 
 ## 📍 1. BẢN ĐỒ TRI THỨC TỔNG QUAN (VISUAL MINDMAP)
 
-```mermaid
-mindmap
-  root((Buổi 1 - App đầu tiên))
-    Terminal
-      Mở Terminal
-      python3 -m http.server 8123
-      Mở 127.0.0.1:8123
-      Ctrl C để tắt
-    3 FILE, 3 BỘ PHẬN
-      index.html - bộ xương
-      style.css - trang điểm
-      script.js - bộ não
-      3 nút: Từ tiếp theo và Đổi màu nền
-    Vibe coding thật sự
-      Bạn tả bằng tiếng Việt
-      AI sửa code
-      Test tự động PASS
-      Bạn nhìn bằng mắt
-    Đọc Terminal
-      Không có dòng nào = đang chạy
-      Lỗi đỏ = copy dán cho AI
-```
+![Sơ đồ tư duy buổi 1](../hinh/buoi-1-mindmap.png)
 
-**Bản đồ ASCII** (nếu nơi bạn đọc không render Mermaid):
-
-```text
-Buổi 1 - App đầu tiên
-├── Terminal
-│   ├── Mở Terminal
-│   ├── python3 -m http.server 8123
-│   ├── Mở http://127.0.0.1:8123
-│   └── Ctrl + C để tắt
-├── 3 FILE, 3 BỘ PHẬN
-│   ├── index.html  — bộ xương (những gì TỒN TẠI trên trang)
-│   ├── style.css   — trang điểm (ĐẸP hay không đẹp)
-│   └── script.js   — bộ não (CHẠY thế nào khi bấm nút)
-└── Vibe coding thật sự
-    ├── Bạn tả bằng tiếng Việt (prompt BBNR)
-    ├── AI sửa code
-    ├── Test tự động PASS
-    └── Bạn nhìn bằng mắt xác nhận
-```
-
+![Sơ đồ 3 file = 3 bộ phận](../hinh/buoi-1-ba-bo-phan.png)
 ---
 
-## 🌐 1b. BẢN LIVE CÔNG KHAI (Tutor đã triển khai thật — 14/11/2026)
+## 🌐 1b. BẢN LIVE CÔNG KHAI — WEB HOÀN CHỈNH (Tutor đã triển khai thật — 14/11/2026)
 
 | Trang | Link (bấm được) |
 | :--- | :--- |
-| Trang chủ khoá học | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/ |
+| Trang chủ khoá học (có sơ đồ & bài giảng đẹp) | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/ |
+| Bài giảng buổi 1 (bản web có sơ đồ màu) | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/tai-lieu/buoi-1-mo-terminal-va-3-file.html |
 | App khung số 1 | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/the-tu-vung-mini/ |
-| Tài liệu buổi 1 | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/tai-lieu/buoi-1-mo-terminal-va-3-file.md |
-| Bộ thẻ ôn tập | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/the-on-tap/bo-the-on-tap-buoi-1.txt |
 
-> Tutor đã kiểm tra thực tế: **8/8 URL trả về 200**, và mở app bằng Chrome tự động đọc được đúng `apple / Quả táo / Từ 1 / 8`. Tức là buổi 5 (deploy) bạn đã được "xem trước đích đến" ngay từ hôm nay. Vẫn giữ nguyên bài tập Bước A trên máy để bạn **tự tay làm** — xem app chạy trên web thì quen mắt sẽ sợ Terminal.
-
----
+> **Đã đổi theo yêu cầu của bạn:** mọi sơ đồ tư duy (mindmap), sơ đồ luồng (flowchart) trong bài giờ là **ảnh PNG nét 2x** (bấm vào ảnh trên web để phóng to), không còn khối mã Mermaid phải đọc bằng mắt. Toàn bộ bài học cũng đã thành **trang web có mục lục, bảng biểu, nút chuyển bài**.
 
 ## 🎯 2. MỤC TIÊU BÀI HỌC
 
@@ -136,32 +93,13 @@ script.js :  tim('emoji').textContent = tu.emoji;   // ghi vào đúng chỗ đ�
 
 > Người mới thường nghĩ: *"Tả cho AI → AI code → xong"*. Đó là **1 bước**, và là cách nhanh nhất để có một app **chạy được nhưng sai**.
 
-```mermaid
-flowchart LR
-    A["Bạn tả bằng tiếng Việt (BBNR)"] --> B["AI sửa file"]
-    B --> C{"Chạy test: tất cả PASS?"}
-    C -->|Không| D["Dán đoạn FAIL cho AI, bảo sửa"]
-    D --> B
-    C -->|Có| E["Bạn nhìn bằng mắt: có đúng ý không"]
-    E -->|Chưa đúng| A
-    E -->|Đúng| F["Xong lát cắt, ghi nhớ 'điểm lưu game'"]
-```
+![Vòng lặp vibe coding 4 bước](../hinh/buoi-1-vong-lap.png)
 
 ---
 
 ## 🛠️ 4. TRỰC QUAN HÓA CƠ CHẾ: ĐIỀU GÌ XẢY RA KHI BẠN BẤM "TỪ TIẾP THEO"
 
-```mermaid
-sequenceDiagram
-    participant Ban as Bạn
-    participant Html as index.html (nút)
-    participant Js as script.js (bộ não)
-    participant Manhinh as Màn hình
-    Ban->>Html: Bấm nút "Từ tiếp theo"
-    Html->>Js: Sự kiện click
-    Js->>Js: timViTriTiepTheo(viTri, 8)
-    Js->>Manhinh: Ghi emoji mới, từ mới, nghĩa mới, "Từ 2 / 8"
-```
+![Chuỗi sự kiện khi bấm nút Từ tiếp theo](../hinh/buoi-1-chuoi-su-kien.png)
 
 ---
 

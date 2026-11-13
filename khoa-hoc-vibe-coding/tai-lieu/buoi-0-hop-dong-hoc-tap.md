@@ -7,60 +7,7 @@
 
 ## 📍 1. BẢN ĐỒ TRI THỨC TỔNG QUAN (VISUAL MINDMAP)
 
-```mermaid
-mindmap
-  root((Vibe Coding 7 ngày))
-    Nền tảng
-      Ý tưởng bằng tiếng Việt
-      AI viết code
-      Bạn là người duyệt và kiểm
-    Bản đồ dự án
-      File và thư mục
-      Đọc lỗi
-      Chạy thử máy local
-    Ra thế giới
-      Git và GitHub
-      Deploy web
-    Mobile
-      Capacitor
-      Build app iOS Android
-    Dự án thật
-      VibeKids đã có code
-      Sửa an toàn từng lát mỏng
-      Quy trình commit và deploy
-    Kỹ năng chống lỗi
-      Prompt rõ ràng
-      Kiểm tra bằng mắt và test
-      Không bao giờ xoá mù
-```
-
-**Bản đồ ASCII** (nếu nơi bạn đọc không render Mermaid):
-
-```text
-Vibe Coding 7 ngày
-├── Nền tảng
-│   ├── Ý tưởng bằng tiếng Việt
-│   ├── AI viết code
-│   └── Bạn là người duyệt và kiểm
-├── Bản đồ dự án
-│   ├── File và thư mục
-│   ├── Đọc lỗi
-│   └── Chạy thử máy local
-├── Ra thế giới
-│   ├── Git và GitHub
-│   └── Deploy web
-├── Mobile
-│   ├── Capacitor
-│   └── Build app iOS Android
-├── Dự án thật
-│   ├── VibeKids đã có code
-│   ├── Sửa an toàn từng lát mỏng
-│   └── Quy trình commit và deploy
-└── Kỹ năng chống lỗi
-    ├── Prompt rõ ràng
-    ├── Kiểm tra bằng mắt và test
-    └── Không bao giờ xoá mù
-```
+![Sơ đồ tư duy tổng quan khoá học](../hinh/buoi-0-mindmap.png)
 
 ---
 
@@ -97,19 +44,7 @@ Vì sao không chọn luôn VibeKids làm dự án học? Vì nó đã có ~hàn
 
 ## 🛠️ 4. TRỰC QUAN HÓA CƠ CHẾ VẬN HÀNH — VÒNG LẶP VIBE CODING
 
-```mermaid
-flowchart TD
-    A[Ý tưởng bằng tiếng Việt] --> B[Viết prompt theo BBNR]
-    B --> C[AI sinh hoặc sửa code]
-    C --> D[Chạy thử trên máy]
-    D -->|Lỗi| E[Copy nguyên văn lỗi dán lại cho AI]
-    E --> C
-    D -->|Chạy đúng| F[Bạn nhìn bằng mắt: có đúng ý không]
-    F -->|Chưa đúng| B
-    F -->|Đúng| G[Git commit điểm lưu game]
-    G --> H[Deploy hoặc build tiếp lát cắt mới]
-    H --> A
-```
+![Sơ đồ vòng lặp Vibe Coding](../hinh/buoi-0-vong-lap.png)
 
 **Công thức prompt BBNR** (dùng ở Buổi 3, nhưng nhìn trước cho dễ hình dung):
 
