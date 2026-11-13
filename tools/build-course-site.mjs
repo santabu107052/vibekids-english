@@ -109,7 +109,7 @@ mkdirSync(OUT_IMG, { recursive: true });
 
 // 3a. Hình ảnh
 for (const f of readdirSync(SRC_IMG)) {
-  if (f.endsWith('.png')) copyFileSync(join(SRC_IMG, f), join(OUT_IMG, f));
+  if (/\.(png|jpe?g|webp)$/i.test(f)) copyFileSync(join(SRC_IMG, f), join(OUT_IMG, f));
 }
 
 // 3b. Bài giảng

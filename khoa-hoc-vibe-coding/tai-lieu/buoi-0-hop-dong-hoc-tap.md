@@ -55,6 +55,13 @@ Vì sao không chọn luôn VibeKids làm dự án học? Vì nó đã có ~hàn
 | **N** | Ràng buộc | "Không sửa file nào ngoài `src/App.tsx`, giữ nguyên style" |
 | **R** | Nghiệm thu | "Nhấn nút thì đổi sang từ kế tiếp, không lỗi console" |
 
+**Nhìn trước: prompt BBNR giống như một công thức nấu ăn 🍰**
+
+![Infographic: vòng lặp vibe coding như một quy trình nấu ăn — 4 bước nguyên liệu, nấu, kiểm tra, dọn ra](../hinh/buoi-0-infographic-bbnr.jpg)
+
+*Đọc ảnh theo chiều trái sang phải: **(1) Nguyên liệu** = bạn nói rõ ý tưởng, ràng buộc và cách nghiệm thu; **(2) Nấu** = AI viết/sửa code; **(3) Kiểm tra bánh** = chạy test và nhìn bằng mắt; **(4) Dọn ra bàn** = chụp ảnh, gắn huy hiệu "đã kiểm", đẩy lên web. Đang nấu mà không ai nhìn lại bánh thì bánh vẫn cháy đẹp như thường — đó chính là kiểu "code chạy nhưng sai ý".*
+
+
 ---
 
 ## 📊 5. BẢNG SO SÁNH — VIBE CODING vs HỌC LẬP TRÌNH TRUYỀN THỐNG
@@ -73,6 +80,13 @@ Vì sao không chọn luôn VibeKids làm dự án học? Vì nó đã có ~hàn
 ---
 
 ## 🎯 6. TỰ KIỂM TRA HIỂU BÀI (CHECK FOR UNDERSTANDING)
+
+> **Nhớ mãi khái niệm "test":** hãy tưởng tượng một bác thợ điện đi kiểm tra **từng công tắc** trong ngôi nhà vừa sửa xong — công tắc nào bật lên cũng có đèn sáng là chứng minh "điện vẫn đi tới mọi ngõ". Đó chính là việc test tự động làm với code của bạn.
+
+![Infographic: test giống bác thợ điện bật thử từng công tắc — xanh là PASS, vàng là FAIL, xám là chưa kiểm](../hinh/buoi-0-infographic-test.jpg)
+
+*Bên trái: mỗi công tắc = một tính năng, xanh còn sáng đèn nghĩa là tính năng cũ chưa bị bạn làm hỏng. Bên phải: điện thoại hiện app "trông có vẻ ổn" nhưng kính lúp vẫn thấy **dấu X đỏ** — nhắc bạn rằng test xanh chưa đủ, vẫn phải tự nhìn.*
+
 
 1. **Câu hỏi 1:** Nếu AI viết xong một chức năng, tại sao vẫn phải "chạy thử bằng mắt"?
 2. **Câu hỏi 2:** Vì sao 2 buổi đầu ta không đụng ngay vào `english-for-kids`?
