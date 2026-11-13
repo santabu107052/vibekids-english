@@ -3,7 +3,7 @@
 > **Học viên:** chưa biết gì về code · **Nhịp:** 60–90 phút · **Dự án:** `the-tu-vung-mini` (khung số 1, đã dựng sẵn và **đã kiểm chứng chạy thật**)
 > **Kết thúc buổi:** bạn mở được app bằng Terminal, hiểu 3 file là 3 bộ phận, và tự làm **bài tập BBNR đầu tiên**.
 
-![Xem trước app khung số 1](preview-buoi-1.png)
+![Xem trước app khung số 1](../the-tu-vung-mini/preview-buoi-1.png)
 
 > Ảnh trên là ảnh chụp **thật** của app, lấy bằng trình duyệt Chrome tự động ngày 14/11/2026 — không phải hình minh họa.
 
@@ -242,7 +242,7 @@ R — Nghiệm thu: Thêm 3 test mới (bình thường / từ đầu nhảy v�
 - 🗓️ **Ôn 2 (sau 3 ngày):** giải thích bằng lời: "HTML là xương, CSS là áo, JS là não" + `id` là số báo danh.
 - 🗓️ **Ôn 3 (sau 7 ngày):** chạy test và nói được vì sao `pass 10` quan trọng hơn "trông đẹp".
 - 🚀 **Bước tiếp theo:** hoàn thành Bài tập 6.C → **Buổi 2: Bản đồ dự án VibeKids** (đọc `App.tsx`, `curatedWords.ts`, `package.json` và hiểu vì sao bấm "Từ tiếp theo" trong VibeKids lại phức tạp hơn trong app của mình).
-- 🃏 **Thẻ ôn tập:** `bo-the-on-tap-buoi-1.txt` (import Anki: File ➔ Import).
+- 🃏 **Thẻ ôn tập:** `../the-on-tap/bo-the-on-tap-buoi-1.txt` (import Anki: File ➔ Import).
 
 ---
 

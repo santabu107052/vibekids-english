@@ -158,4 +158,4 @@ flowchart TD
 - 🗓️ **Ôn 2 (sau 3 ngày):** giải thích bằng lời của bạn, trong 60 giây, cho một người khác nghe "vibe coding là gì và vì sao AI vẫn cần bạn duyệt" (Feynman).
 - 🗓️ **Ôn 3 (sau 7 ngày):** bạn sẽ tự trải qua đúng 3 rủi ro này và đối chiếu — nếu chưa gặp, ta sẽ gài vào bài tập.
 - 🚀 **Bước tiếp theo:** **Buổi 1 — "Mở Terminal lần đầu: chạy một dự án do AI tạo"**. Bạn chỉ cần ngồi trước máy, không cần cài gì thêm.
-- 🃏 **Thẻ ôn tập:** xem `bo-the-on-tap-buoi-0.txt` trong cùng thư mục (import vào Anki: File ➔ Import; nguồn soạn thẻ là `bo-the-on-tap-buoi-0.csv`).
+- 🃏 **Thẻ ôn tập:** xem `../the-on-tap/bo-the-on-tap-buoi-0.txt` (import vào Anki: File ➔ Import; nguồn soạn thẻ là `../the-on-tap/bo-the-on-tap-buoi-0.csv`).
