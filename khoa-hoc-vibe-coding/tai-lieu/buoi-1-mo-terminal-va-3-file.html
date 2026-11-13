@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUỔI 1: MỞ CỬA LẦN ĐẦU: APP "BÉ VUI HỌC TỪ VỰNG" ĐÃ CHẠY | Khoá học Vibe Coding</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body class="trang-bai">
+<nav class="nav-bai">
+  <a class="nut-nav nut-nav-chu" href="../index.html">🏠 Trang chủ khoá học</a>
+  <span class="nut-nav nut-nav-tat"></span>
+  <a class="nut-nav" href="buoi-0-hop-dong-hoc-tap.html">&#9664; Bài trước: Hợp đồng học tập & bản đồ lộ trình vibe coding</a>
+</nav>
+<main class="noi-dung">
+<h1>🎓 BUỔI 1 — MỞ CỬA LẦN ĐẦU: APP &quot;BÉ VUI HỌC TỪ VỰNG&quot; ĐÃ CHẠY</h1>
+<blockquote>
+<p><strong>Học viên:</strong> chưa biết gì về code · <strong>Nhịp:</strong> 60–90 phút · <strong>Dự án:</strong> <code>the-tu-vung-mini</code> (khung số 1, đã dựng sẵn và <strong>đã kiểm chứng chạy thật</strong>)
+<strong>Kết thúc buổi:</strong> bạn mở được app bằng Terminal, hiểu 3 file là 3 bộ phận, và tự làm <strong>bài tập BBNR đầu tiên</strong>.</p>
+</blockquote>
+<p><img src="../the-tu-vung-mini/preview-buoi-1.png" alt="Xem trước app khung số 1"></p>
+<blockquote>
+<p>Ảnh trên là ảnh chụp <strong>thật</strong> của app, lấy bằng trình duyệt Chrome tự động ngày 14/11/2026 — không phải hình minh họa.</p>
+</blockquote>
+<hr>
+<h2>📍 1. BẢN ĐỒ TRI THỨC TỔNG QUAN (VISUAL MINDMAP)</h2>
+<p><img src="../hinh/buoi-1-mindmap.png" alt="Sơ đồ tư duy buổi 1"></p>
+<h2><img src="../hinh/buoi-1-ba-bo-phan.png" alt="Sơ đồ 3 file = 3 bộ phận"></h2>
+<h2>🌐 1b. BẢN LIVE CÔNG KHAI — WEB HOÀN CHỈNH (Tutor đã triển khai thật — 14/11/2026)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Trang</th>
+<th style="text-align:left">Link (bấm được)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Trang chủ khoá học (có sơ đồ &amp; bài giảng đẹp)</td>
+<td style="text-align:left"><a href="https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/">https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/</a></td>
+</tr>
+<tr>
+<td style="text-align:left">Bài giảng buổi 1 (bản web có sơ đồ màu)</td>
+<td style="text-align:left"><a href="https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/tai-lieu/buoi-1-mo-terminal-va-3-file.html">https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/tai-lieu/buoi-1-mo-terminal-va-3-file.html</a></td>
+</tr>
+<tr>
+<td style="text-align:left">App khung số 1</td>
+<td style="text-align:left"><a href="https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/the-tu-vung-mini/">https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/the-tu-vung-mini/</a></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Đã đổi theo yêu cầu của bạn:</strong> mọi sơ đồ tư duy (mindmap), sơ đồ luồng (flowchart) trong bài giờ là <strong>ảnh PNG nét 2x</strong> (bấm vào ảnh trên web để phóng to), không còn khối mã Mermaid phải đọc bằng mắt. Toàn bộ bài học cũng đã thành <strong>trang web có mục lục, bảng biểu, nút chuyển bài</strong>.</p>
+</blockquote>
+<h2>🎯 2. MỤC TIÊU BÀI HỌC</h2>
+<ul>
+<li><strong>Kiến thức:</strong> biết Terminal là gì; biết mỗi file trong app có nhiệm vụ gì.</li>
+<li><strong>Kỹ năng:</strong> tự mở app bằng 1 câu lệnh; tự chạy <strong>test</strong> bằng 1 câu lệnh; biết đóng app.</li>
+<li><strong>Thái độ:</strong> hết sợ Terminal — vì Terminal chỉ là nơi bạn <strong>giao việc</strong> cho máy bằng chữ.</li>
+</ul>
+<hr>
+<h2>🧱 3. GIẢNG GIẢI CẶN KẼ TỪNG KHỐI KIẾN THỨC</h2>
+<h3>🔹 Khối 1: Terminal — &quot;cửa khẩu giao việc cho máy&quot;</h3>
+<ul>
+<li><strong>Ẩn dụ trực quan:</strong> Cửa hàng có 2 kiểu khách: khách <strong>bấm chuột</strong> (giao diện) và khách <strong>đọc đơn hàng bằng giọng nói rõ ràng</strong> (Terminal). Các lập trình viên chuyên nghiệp dùng kiểu thứ 2 vì <strong>nhanh hơn</strong> và <strong>máy nào cũng có</strong>.</li>
+<li><strong>Định nghĩa chuẩn:</strong> <em>Terminal</em> là cửa sổ cho phép bạn gõ <strong>câu lệnh</strong> (command) bằng chữ để ra lệnh cho máy tính, thay vì bấm chuột.</li>
+<li><strong>Ví dụ cụ thể:</strong> gõ <code>python3 -m http.server 8123</code> nghĩa là hỏi máy: <em>&quot;Bạn Python ơi, làm ơn mở cửa hàng web (http server) ở <strong>quầy số 8123</strong> giúp tôi&quot;</em>. Máy mở quầy, bạn vào bằng địa chỉ <code>http://127.0.0.1:8123</code>.</li>
+<li><strong>⚠️ Hiểu sai phổ biến:</strong> nghĩ Terminal <strong>giống hệt</strong> một trang web. Không: Terminal là <strong>một chương trình riêng</strong>. Trong Terminal bạn gõ <strong>tên app</strong> (<em>Terminal</em>, được macOS gọi tên là <em>Terminal</em>), không gõ code.</li>
+</ul>
+<hr>
+<h3>🔹 Khối 2: Ba file = ba bộ phận của một con người</h3>
+<ul>
+<li><strong>Ẩn dụ trực quan:</strong> một con người = <strong>xương</strong> + <strong>quần áo &amp; trang điểm</strong> + <strong>bộ não</strong>. Thiếu bộ não vẫn nhìn thấy &quot;người&quot; nhưng không biết ai là ai; thiếu xương thì không đứng được.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Bộ phận</th>
+<th style="text-align:left">File</th>
+<th style="text-align:left">Nhiệm vụ</th>
+<th style="text-align:left">Trong app của mình</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Bộ xương</td>
+<td style="text-align:left"><code>index.html</code></td>
+<td style="text-align:left">Khai báo <strong>cái gì có trên trang</strong></td>
+<td style="text-align:left">1 thẻ trắng, 2 nút, các chỗ trống: <code>id=&quot;tu-tieng-anh&quot;</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Trang điểm</td>
+<td style="text-align:left"><code>style.css</code></td>
+<td style="text-align:left">Quyết định <strong>đẹp hay xấu</strong></td>
+<td style="text-align:left">Bo góc tròn, chữ to, 4 bộ màu nền</td>
+</tr>
+<tr>
+<td style="text-align:left">Bộ não</td>
+<td style="text-align:left"><code>script.js</code></td>
+<td style="text-align:left">Quyết định <strong>bấm nút thì chuyện gì xảy ra</strong></td>
+<td style="text-align:left">&quot;Từ tiếp theo&quot; → sang từ kế, &quot;Đổi màu nền&quot; → đổi màu</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Định nghĩa chuẩn:</strong>
+<ul>
+<li><em>HTML</em> = ngôn ngữ đánh dấu (<strong>H</strong>yper<strong>T</strong>ext <strong>M</strong>arkup <strong>L</strong>anguage) — mô tả các khối nội dung.</li>
+<li><em>CSS</em> = ngôn ngữ trang trí (<strong>C</strong>ascading <strong>S</strong>tyle <strong>S</strong>heets) — mô tả màu, cỡ, vị trí.</li>
+<li><em>JavaScript</em> = ngôn ngữ lập trình — mô tả hành vi, &quot;khi X thì làm Y&quot;.</li>
+</ul>
+</li>
+<li><strong>Ví dụ cụ thể:</strong> file <code>index.html</code> có dòng <code>&lt;div class=&quot;word&quot; id=&quot;tu-tieng-anh&quot;&gt;apple&lt;/div&gt;</code>. Chữ <code>apple</code> ở đây chỉ là <strong>giá trị tạm</strong>; ngay khi mở app, <code>script.js</code> sẽ <strong>ghi đè</strong> bằng từ đúng hơn (<code>apple</code>) và tiếp theo là <code>cat</code>, <code>banana</code>… Vì thế nếu bạn sửa chữ <code>apple</code> trong HTML mà <strong>không</strong> thấy đổi — bình thường, vì bộ não ghi đè lại.</li>
+<li><strong>⚠️ Hiểu sai phổ biến:</strong> <em>&quot;Tôi sửa chữ trong HTML mà app không đổi, chắc app hỏng.&quot;</em> Không hỏng — bạn đang sửa sai bộ phận: chữ hiển thị do <strong>script.js</strong> điều khiển (danh sách <code>BO_TU_MAU</code>). Sửa HTML chỉ hữu ích với thứ <strong>không</strong> bị JS ghi đè (ví dụ tiêu đề &quot;Bé Vui Học Từ Vựng&quot;).</li>
+</ul>
+<hr>
+<h3>🔹 Khối 3: <code>id</code> — &quot;tên gọi&quot; để bộ não tìm đúng bộ phận</h3>
+<ul>
+<li><strong>Ẩn dụ trực quan:</strong> Một lớp 40 em đều mặc áo trắng. Cô giáo gọi &quot;Bạn có <strong>số báo danh 12</strong>&quot; — không gọi &quot;bạn áo trắng ơi&quot; (sẽ 40 em quay lại). <code>id</code> chính là số báo danh.</li>
+<li><strong>Định nghĩa chuẩn:</strong> <code>id</code> là <strong>một thuộc tính HTML</strong> gán <strong>một định danh duy nhất</strong> cho phần tử (element), để code hay CSS tìm đúng phần tử đó.</li>
+<li><strong>Ví dụ cụ thể:</strong></li>
+</ul>
+<pre><code class="language-text">index.html:  &lt;div id=&quot;emoji&quot;&gt;🍎&lt;/div&gt;
+script.js :  tim('emoji').textContent = tu.emoji;   // ghi vào đúng chỗ đó
+</code></pre>
+<p>Đổi tên <code>id</code> ở file này mà <strong>không đổi</strong> ở file kia → bộ não gõ cửa &quot;phòng có số báo danh <code>emoji</code>&quot; và <strong>không ai trả lời</strong> → nút bấm không làm gì. Đây là <strong>lỗi số 1</strong> của người mới dùng vibe coding.</p>
+<ul>
+<li><strong>⚠️ Hiểu sai phổ biến:</strong> nghĩ <code>class</code> (dùng ở <code>style.css</code>: <code>.card</code>, <code>.btn</code>) và <code>id</code> (dùng ở <code>script.js</code>: <code>tim('emoji')</code>) là một thứ. Không: <code>class</code> là <strong>nhóm</strong> (nhiều phần tử dùng chung 1 kiểu, ví dụ mọi nút), <code>id</code> là <strong>duy nhất</strong> (chỉ 1 phần tử).</li>
+</ul>
+<hr>
+<h3>🔹 Khối 4: Test — &quot;người gác cổng&quot; cho phép bạn sửa code mà không sợ</h3>
+<ul>
+<li><strong>Ẩn dụ trực quan:</strong> Bạn cải tạo nhà. Trước khi làm xong, người gác cổng <strong>lần lượt bật từng công tắc</strong> trong nhà để chắc &quot;công tắc nào cũng bật được&quot;. Có test, bạn được phép <strong>bấm, sửa, làm hỏng thử</strong> — vì gác cổng sẽ báo ngay.</li>
+<li><strong>Định nghĩa chuẩn:</strong> <em>Test</em> (kiểm thử) là đoạn code <strong>tự động chạy thử</strong> tính năng và trả về <strong>PASS/FAIL</strong>. Chạy lại test <strong>sau mỗi lần sửa</strong> để chắc không làm hỏng chức năng cũ gọi là <strong>kiểm thử hồi quy</strong> (regression testing).</li>
+<li><strong>Ví dụ cụ thể:</strong> dự án có 10 test. Hôm nay AI sửa nút &quot;Từ tiếp theo&quot; và làm hỏng luật quay vòng → test thứ 9 (<code>bấm đủ 8 lần thì vòng lại từ đầu</code>) <strong>chuyển sang FAIL</strong>. Bạn <strong>copy dòng FAIL dán cho AI</strong> — &quot;sửa cho test này PASS&quot;. AI có <strong>mục tiêu cụ thể</strong>, không đoán mò.</li>
+<li><strong>⚠️ Hiểu sai phổ biến:</strong> <em>&quot;Test PASS nghĩa là app đẹp, đúng ý.&quot;</em> Sai. Test chỉ kiểm <strong>chức năng</strong> (bấm ra gì), <strong>không</strong> kiểm <strong>thẩm mỹ</strong>. Vẫn phải tự nhìn bằng mắt.</li>
+</ul>
+<hr>
+<h3>🔹 Khối 5: Vibe coding thật sự — 4 bước, không phải 1 bước</h3>
+<blockquote>
+<p>Người mới thường nghĩ: <em>&quot;Tả cho AI → AI code → xong&quot;</em>. Đó là <strong>1 bước</strong>, và là cách nhanh nhất để có một app <strong>chạy được nhưng sai</strong>.</p>
+</blockquote>
+<p><img src="../hinh/buoi-1-vong-lap.png" alt="Vòng lặp vibe coding 4 bước"></p>
+<hr>
+<h2>🛠️ 4. TRỰC QUAN HÓA CƠ CHẾ: ĐIỀU GÌ XẢY RA KHI BẠN BẤM &quot;TỪ TIẾP THEO&quot;</h2>
+<p><img src="../hinh/buoi-1-chuoi-su-kien.png" alt="Chuỗi sự kiện khi bấm nút Từ tiếp theo"></p>
+<hr>
+<h2>📊 5. BẢNG SO SÁNH — 3 FILE DỄ NHẦM</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Tiêu chí</th>
+<th style="text-align:left"><code>index.html</code></th>
+<th style="text-align:left"><code>style.css</code></th>
+<th style="text-align:left"><code>script.js</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Trả lời câu hỏi</td>
+<td style="text-align:left"><strong>Có gì</strong> trên trang?</td>
+<td style="text-align:left">Trông <strong>thế nào</strong>?</td>
+<td style="text-align:left"><strong>Làm gì</strong> khi bấm?</td>
+</tr>
+<tr>
+<td style="text-align:left">Đơn vị cơ bản</td>
+<td style="text-align:left">Thẻ (element) như <code>&lt;div&gt;</code>, <code>&lt;button&gt;</code></td>
+<td style="text-align:left">Quy tắc (rule) như <code>.btn { }</code></td>
+<td style="text-align:left">Hàm (function) như <code>mauTiepTheo()</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Người mới sửa khi muốn…</td>
+<td style="text-align:left">Đổi tiêu đề, thêm 1 nút</td>
+<td style="text-align:left">Đổi màu, cỡ chữ, bo góc</td>
+<td style="text-align:left">Thêm quy tắc, thêm từ vựng</td>
+</tr>
+<tr>
+<td style="text-align:left">Sửa sai file sẽ…</td>
+<td style="text-align:left">Lỗi hiển thị / mất nút</td>
+<td style="text-align:left">Không hỏng chức năng</td>
+<td style="text-align:left">Phá chức năng nhưng vẫn &quot;đẹp&quot;</td>
+</tr>
+<tr>
+<td style="text-align:left">Ai kiểm được?</td>
+<td style="text-align:left">Bạn nhìn</td>
+<td style="text-align:left">Bạn nhìn</td>
+<td style="text-align:left"><strong>Test tự động</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>🎯 6. BÀI TẬP THỰC HÀNH BẮT BUỘC (làm ngay trong buổi)</h2>
+<h3>Bước A — Mở app (5 phút)</h3>
+<ol>
+<li>Mở <strong>Terminal</strong> (search &quot;Terminal&quot; trong Spotlight ➔ Enter).</li>
+<li>Gõ <strong>từng dòng</strong> dưới đây rồi Enter:</li>
+</ol>
+<pre><code class="language-bash">cd /Users/santabu/Documents/deepseek-harness/default-workspace/english-for-kids/khoa-hoc-vibe-coding/the-tu-vung-mini
+python3 -m http.server 8123
+</code></pre>
+<ol start="3">
+<li>Terminal sẽ <strong>đứng im</strong> (không có dòng mới). <strong>Đó là BÌNH THƯỜNG</strong> — Terminal đang &quot;trực quầy&quot;.</li>
+<li>Mở Chrome ➔ dán vào thanh địa chỉ: <code>http://127.0.0.1:8123</code></li>
+<li>Bấm <strong>&quot;Từ tiếp theo&quot;</strong> 3 lần (phải thấy <code>cat</code> → <code>banana</code> → <code>dog</code>), bấm <strong>&quot;Đổi màu nền&quot;</strong> 2 lần.</li>
+<li>Xong thì quay lại Terminal bấm <strong>Ctrl + C</strong> để tắt.</li>
+</ol>
+<blockquote>
+<p>⚠️ Nếu ở bước 3 Terminal <strong>in ra dòng đỏ</strong> <code>Address already in use</code> — nghĩa là quầy 8123 đã bị chiếm. Đổi số: <code>python3 -m http.server 8124</code> và mở <code>127.0.0.1:8124</code>.</p>
+</blockquote>
+<h3>Bước B — Chạy test (2 phút)</h3>
+<p>Trong Terminal, <strong>Ctrl + C</strong> trước cho sạch, rồi gõ:</p>
+<pre><code class="language-bash">cd /Users/santabu/Documents/deepseek-harness/default-workspace/english-for-kids/khoa-hoc-vibe-coding/the-tu-vung-mini
+node --test test/khoa-hoc.test.mjs
+</code></pre>
+<p>Bạn phải thấy <strong><code>pass 10</code> / <code>fail 0</code></strong>. Con số <code>10</code> này là <strong>vạch mốc của bạn</strong>: mọi lần sửa code sau, test phải vẫn <code>10/10</code> mới được coi là &quot;chưa làm hỏng gì&quot;.</p>
+<h3>Bước C — Bài tập vibe coding ĐẦU TIÊN (10 phút)</h3>
+<blockquote>
+<p><strong>Yêu cầu:</strong> thêm 1 nút thứ ba tên <strong>&quot;Quay lại từ trước&quot;</strong>, bấm thì lùi 1 từ; đang ở từ đầu thì nhảy về <strong>từ cuối</strong> (ngược của &quot;Từ tiếp theo&quot;).</p>
+</blockquote>
+<p>Nhưng — <strong>bạn chưa tự viết code</strong>. Bạn viết <strong>prompt BBNR</strong> rồi <strong>dán vào ô chat với tôi</strong>. Tôi sẽ sửa code chạy thật, sau đó bạn chạy lại test và tự bấm thử.</p>
+<p><strong>Khuôn mẫu để bạn điền (copy khuôn này, sửa chỗ ngoặc vuông):</strong></p>
+<pre><code class="language-text">B — Bối cảnh: Dự án nhỏ ở thư mục khoa-hoc-vibe-coding/the-tu-vung-mini
+    gồm index.html, style.css, script.js và test/khoa-hoc.test.mjs (10 test đang PASS).
+V — Việc: Thêm nút thứ ba &quot;Quay lại từ trước&quot; cạnh 2 nút hiện có. Bấm thì hiện từ
+    phía trước; đang ở từ đầu (Từ 1/8) thì nhảy về từ cuối (Từ 8/8).
+N — Ràng buộc: Không đổi giao diện hiện tại, không đổi màu, không xoá nút cũ.
+    Nút mới dùng cùng kiểu .btn như nút &quot;Đổi màu nền&quot;.
+    Thêm hàm thuần `timViTriTruoc(viTriHienTai, tongSoTu)` trong script.js.
+R — Nghiệm thu: Thêm 3 test mới (bình thường / từ đầu nhảy về cuối / dữ liệu rác).
+    Chạy `node --test test/khoa-hoc.test.mjs` phải ra pass 13, fail 0.
+    Bấm thử trên trình duyệt: từ apple ➔ quay lại thì ra rice (Từ 8/8).
+</code></pre>
+<p><strong>Nộp bài:</strong> dán prompt vừa điền vào chat. Tôi sẽ làm <strong>đúng vai AI code</strong> (như bạn sẽ làm với AI khác), rồi bạn chạy <code>node --test</code> để <strong>tự nghiệm thu</strong>.</p>
+<hr>
+<h2>🎯 7. TỰ KIỂM TRA HIỂU BÀI (CHECK FOR UNDERSTANDING)</h2>
+<ol>
+<li><strong>Câu hỏi 1:</strong> Bạn muốn đổi tiêu đề &quot;Bé Vui Học Từ Vựng&quot; thành &quot;Bé Học Từ Vựng Vui&quot; — sửa file nào?</li>
+<li><strong>Câu hỏi 2:</strong> Bạn muốn app đẹp hơn: từ to hơn, thẻ bo tròn hơn — sửa file nào?</li>
+<li><strong>Câu hỏi 3:</strong> Bạn sửa chữ <code>apple</code> trong <code>index.html</code> thành <code>APPLE</code> nhưng mở app vẫn thấy <code>apple</code> — hỏng hay không hỏng? Vì sao?</li>
+<li><strong>Câu hỏi 4:</strong> Terminal đang ở trạng thái &quot;đứng im&quot; sau khi gõ <code>python3 -m http.server 8123</code>, có cần bấm gì tiếp không?</li>
+</ol>
+<details><summary>💡 Xem gợi ý đáp án</summary>
+<ol>
+<li><code>index.html</code> (tiêu đề không bị bộ não ghi đè).</li>
+<li><code>style.css</code>.</li>
+<li><strong>Không hỏng.</strong> <code>script.js</code> chạy sau và ghi đè chữ bằng dữ liệu trong <code>BO_TU_MAU</code>.</li>
+<li><strong>Không.</strong> &quot;Đứng im&quot; = đang chạy. Bấm <strong>Ctrl + C</strong> khi muốn tắt.</li>
+</ol>
+</details>
+<hr>
+<h2>📌 8. LỘ TRÌNH ÔN TẬP &amp; BƯỚC TIẾP THEO</h2>
+<ul>
+<li>🗓️ <strong>Ôn 1 (sau 1 ngày):</strong> mở app bằng <strong>2 dòng lệnh</strong> không nhìn lại bài. Nếu quên → xem lại Bước A.</li>
+<li>🗓️ <strong>Ôn 2 (sau 3 ngày):</strong> giải thích bằng lời: &quot;HTML là xương, CSS là áo, JS là não&quot; + <code>id</code> là số báo danh.</li>
+<li>🗓️ <strong>Ôn 3 (sau 7 ngày):</strong> chạy test và nói được vì sao <code>pass 10</code> quan trọng hơn &quot;trông đẹp&quot;.</li>
+<li>🚀 <strong>Bước tiếp theo:</strong> hoàn thành Bài tập 6.C → <strong>Buổi 2: Bản đồ dự án VibeKids</strong> (đọc <code>App.tsx</code>, <code>curatedWords.ts</code>, <code>package.json</code> và hiểu vì sao bấm &quot;Từ tiếp theo&quot; trong VibeKids lại phức tạp hơn trong app của mình).</li>
+<li>🃏 <strong>Thẻ ôn tập:</strong> <code>../the-on-tap/bo-the-on-tap-buoi-1.txt</code> (import Anki: File ➔ Import).</li>
+</ul>
+<hr>
+<h2>📎 PHỤ LỤC — 5 câu lệnh bạn dùng suốt khóa</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Việc</th>
+<th style="text-align:left">Câu lệnh</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Vào thư mục dự án</td>
+<td style="text-align:left"><code>cd /duong/dan/thu-muc</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Mở app học (khung số 1)</td>
+<td style="text-align:left"><code>python3 -m http.server 8123</code> → mở <code>http://127.0.0.1:8123</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Chạy test</td>
+<td style="text-align:left"><code>node --test test/khoa-hoc.test.mjs</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Tắt app</td>
+<td style="text-align:left">Ctrl + C</td>
+</tr>
+<tr>
+<td style="text-align:left">Xem mình đang ở đâu</td>
+<td style="text-align:left"><code>pwd</code></td>
+</tr>
+</tbody>
+</table>
+
+</main>
+<footer class="chan-trang">
+  <p>Khoá học Vibe Coding — Tutor tự động đóng gói từ Markdown. Sửa bài gốc trong <code>khoa-hoc-vibe-coding/tai-lieu/</code> rồi chạy lại <code>node tools/build-course-site.mjs</code>.</p>
+</footer>
+</body>
+</html>

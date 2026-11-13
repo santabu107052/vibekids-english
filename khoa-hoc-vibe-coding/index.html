@@ -1,36 +1,51 @@
 <!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Khoá học Vibe Coding — Trang chủ</title>
-    <script type="module" crossorigin src="/assets/index-BRXJKfUI.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CxApcYY4.css">
-  </head>
-  <body>
-    <main class="trang-chu">
-      <h1>🎓 Khoá học Vibe Coding 7 buổi</h1>
-      <p class="mo-ta">Lộ trình học của bạn, mỗi buổi một sản phẩm thật.</p>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khoá học Vibe Coding — Trang chủ</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="trang-chu-body">
+<main class="trang-chu">
+  <h1>🎓 Khoá học Vibe Coding 7 buổi</h1>
+  <p class="mo-ta">Mỗi bài là một trang web có sơ đồ màu, hình vẽ và bài tập thật.</p>
 
-      <ul class="danh-sach">
-        <li>
-          <a class="the" id="link-buoi-1" href="./the-tu-vung-mini/">
-            <span class="the-so">Buổi 1</span>
-            <span class="the-ten">Mở Terminal &amp; app đầu tiên</span>
-            <span class="the-mo-ta">Bé Vui Học Từ Vựng — bấm "Từ tiếp theo", "Đổi màu nền"</span>
-          </a>
-        </li>
-        <li>
-          <a class="the the-cho" href="./the-tu-vung-mini/preview-buoi-1.png">
-            <span class="the-so">Ảnh chụp</span>
-            <span class="the-ten">Xem trước app buổi 1</span>
-            <span class="the-mo-ta">Screenshot thật, chụp bằng Chrome tự động</span>
-          </a>
-        </li>
-      </ul>
+  <h2 class="muc">📚 Bài giảng</h2>
+  <ul class="danh-sach-bai">
 
-      <p class="loi-nhac">Buổi 2–7 sẽ được Tutor bổ sung vào danh sách này sau mỗi buổi học.</p>
-    </main>
+      <a class="the-bai" href="./tai-lieu/buoi-0-hop-dong-hoc-tap.html">
+        <span class="the-bai-so">Buổi 0</span>
+        <span class="the-bai-ten">Hợp đồng học tập & bản đồ lộ trình vibe coding</span>
+        <span class="the-bai-mo">Bài giảng tương tác</span>
+      </a>
 
-  </body>
+      <a class="the-bai" href="./tai-lieu/buoi-1-mo-terminal-va-3-file.html">
+        <span class="the-bai-so">Buổi 1</span>
+        <span class="the-bai-ten">Mở cửa lần đầu: app "bé vui học từ vựng" đã chạy</span>
+        <span class="the-bai-mo">Bài giảng tương tác</span>
+      </a>
+  </ul>
+
+  <h2 class="muc">🎮 Sản phẩm thực hành</h2>
+  <ul class="danh-sach">
+    <li>
+      <a class="the" id="link-buoi-1" href="./the-tu-vung-mini/index.html">
+        <span class="the-so">App</span>
+        <span class="the-ten">Bé Vui Học Từ Vựng (buổi 1)</span>
+        <span class="the-mo-ta">Bấm "Từ tiếp theo" và "Đổi màu nền"</span>
+      </a>
+    </li>
+  </ul>
+
+  <h2 class="muc">🃏 Thẻ ôn tập ngắt quãng</h2>
+  <ul class="danh-sach">
+    <li><a class="the the-nho" href="./the-on-tap/bo-the-on-tap-buoi-0.txt"><span class="the-ten">buoi-0</span><span class="the-mo-ta">Tải bộ thẻ, import vào Anki: File ➔ Import</span></a></li>
+    <li><a class="the the-nho" href="./the-on-tap/bo-the-on-tap-buoi-1.txt"><span class="the-ten">buoi-1</span><span class="the-mo-ta">Tải bộ thẻ, import vào Anki: File ➔ Import</span></a></li>
+  </ul>
+
+  <p class="loi-nhac">Bài mới: Tutor viết Markdown ➔ render sơ đồ thành ảnh ➔ chạy <code>node tools/build-course-site.mjs</code> ➔ deploy.</p>
+</main>
+<script type="module" src="./script.js"></script>
+</body>
 </html>
