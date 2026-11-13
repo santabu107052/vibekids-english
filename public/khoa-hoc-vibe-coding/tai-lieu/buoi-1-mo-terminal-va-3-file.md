@@ -56,6 +56,19 @@ Buổi 1 - App đầu tiên
 
 ---
 
+## 🌐 1b. BẢN LIVE CÔNG KHAI (Tutor đã triển khai thật — 14/11/2026)
+
+| Trang | Link (bấm được) |
+| :--- | :--- |
+| Trang chủ khoá học | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/ |
+| App khung số 1 | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/the-tu-vung-mini/ |
+| Tài liệu buổi 1 | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/tai-lieu/buoi-1-mo-terminal-va-3-file.md |
+| Bộ thẻ ôn tập | https://santabu107052.github.io/vibekids-english/khoa-hoc-vibe-coding/the-on-tap/bo-the-on-tap-buoi-1.txt |
+
+> Tutor đã kiểm tra thực tế: **8/8 URL trả về 200**, và mở app bằng Chrome tự động đọc được đúng `apple / Quả táo / Từ 1 / 8`. Tức là buổi 5 (deploy) bạn đã được "xem trước đích đến" ngay từ hôm nay. Vẫn giữ nguyên bài tập Bước A trên máy để bạn **tự tay làm** — xem app chạy trên web thì quen mắt sẽ sợ Terminal.
+
+---
+
 ## 🎯 2. MỤC TIÊU BÀI HỌC
 
 - **Kiến thức:** biết Terminal là gì; biết mỗi file trong app có nhiệm vụ gì.
