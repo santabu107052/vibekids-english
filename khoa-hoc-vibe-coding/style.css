@@ -147,6 +147,13 @@ a { color: var(--mau-chinh); }
   cursor: zoom-in;
 }
 
+/* Infographic vẽ bằng AI: khung riêng để phân biệt với sơ đồ Mermaid */
+.noi-dung img[src*="infographic"] {
+  border: 3px solid #e0e7ff;
+  border-radius: 22px;
+  background: #ffffff;
+}
+
 .noi-dung img.anh-phong-to {
   position: fixed;
   inset: 12px;
