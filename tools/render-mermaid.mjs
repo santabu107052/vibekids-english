@@ -23,6 +23,8 @@ const CHROME_CANDIDATES = [
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   '/Applications/Chromium.app/Contents/MacOS/Chromium',
 ];
+// Bundle Mermaid được commit kèm repo: không cần thư viện trong node_modules khi render,
+// nên máy nào clone repo cũng render được ngay (không phải chạy pnpm install trước).
 const MERMAID_PATH = join(DAY, 'public', 'tools', 'mermaid.min.js');
 
 const [, , inputFile, outputFile, ...rest] = process.argv;
