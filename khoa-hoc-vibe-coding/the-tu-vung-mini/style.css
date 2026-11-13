@@ -1,0 +1,137 @@
+/* =========================================================
+   FILE TRANG ĐIỂM (STYLE) — chỉ lo "đẹp hay không đẹp"
+   Không chứa logic. Đổi màu ở đây KHÔNG làm hỏng chức năng.
+   ========================================================= */
+
+:root {
+  --nen-1: #fdf2f8;
+  --nen-2: #eef2ff;
+  --mau-chu: #1e1b4b;
+  --mau-chinh: #4f46e5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--mau-chu);
+  background: linear-gradient(160deg, var(--nen-1), var(--nen-2));
+  transition: background 400ms ease;
+}
+
+/* Mỗi lần bấm "Đổi màu nền", JS đổi data-mau -> CSS đổi bảng màu */
+body[data-mau="hong"] {
+  --nen-1: #fdf2f8;
+  --nen-2: #eef2ff;
+}
+body[data-mau="xanh"] {
+  --nen-1: #ecfeff;
+  --nen-2: #dcfce7;
+}
+body[data-mau="vang"] {
+  --nen-1: #fffbeb;
+  --nen-2: #fee2e2;
+}
+body[data-mau="tim"] {
+  --nen-1: #f5f3ff;
+  --nen-2: #fae8ff;
+}
+
+.app {
+  width: min(92vw, 460px);
+  padding: 28px 20px 36px;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+  margin: 0 0 22px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 30px 20px;
+  box-shadow: 0 18px 40px -18px rgba(30, 27, 75, 0.35);
+  animation: hien-ra 260ms ease;
+}
+
+.emoji {
+  font-size: 4.5rem;
+  line-height: 1;
+}
+
+.word {
+  margin-top: 12px;
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--mau-chinh);
+}
+
+.phonetic {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.meaning {
+  margin-top: 10px;
+  font-size: 1.15rem;
+}
+
+.counter {
+  margin: 18px 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-primary {
+  background: var(--mau-chinh);
+  color: #ffffff;
+  box-shadow: 0 10px 20px -10px var(--mau-chinh);
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: var(--mau-chinh);
+  box-shadow: inset 0 0 0 2px var(--mau-chinh);
+}
+
+@keyframes hien-ra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

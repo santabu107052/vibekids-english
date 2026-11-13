@@ -1,0 +1,10 @@
+HTML lo phần nào của app	Bộ xương: cái gì có trên trang (thẻ, nút, chỗ trống có id)	buoi1-file
+CSS lo phần nào của app	Trang điểm: màu sắc, cỡ chữ, bo góc, bố cục - đẹp hay không đẹp	buoi1-file
+JavaScript lo phần nào của app	Bộ não: bấm nút thì chuyện gì xảy ra - chạy thế nào	buoi1-file
+id trong HTML để làm gì	Là số báo danh duy nhất để script.js tìm đúng phần tử rồi ghi nội dung vào	buoi1-file
+Vì sao sửa chữ apple trong index.html mà app không đổi	Vì script.js chạy sau và ghi đè bằng dữ liệu trong BO_TU_MAU	buoi1-loi-thuong-gap
+Test PASS nghĩa là gì	Chỉ chứng minh chức năng chưa hỏng, KHÔNG chứng minh đẹp hay đúng ý - vẫn phải nhìn bằng mắt	buoi1-test
+Mở app the-tu-vung-mini bằng câu lệnh nào	cd vào thư mục the-tu-vung-mini rồi python3 -m http.server 8123, mở http://127.0.0.1:8123	buoi1-lenh
+Chạy test của the-tu-vung-mini bằng câu lệnh nào	node --test test/khoa-hoc.test.mjs - kết quả đúng là pass 10 fail 0	buoi1-lenh
+Terminal đứng im sau khi mở http.server nghĩa là gì	Đang chạy bình thường (đang trực quầy) - muốn tắt bấm Ctrl + C	buoi1-terminal
+4 chữ BBNR là gì	Bối cảnh - Việc - Ràng buộc - Nghiệm thu	buoi1-prompt

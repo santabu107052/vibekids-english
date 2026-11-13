@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bé Vui Học Từ Vựng (Khung số 1)</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!--
+      ĐÂY LÀ KHUNG SỐ 1 CỦA KHÓA HỌC.
+      3 chi tiết bên trong thẻ: emoji + từ tiếng Anh + nghĩa tiếng Việt
+      2 nút: "Từ tiếp theo" và "Đổi màu nền".
+      Tất cả do JavaScript (script.js) điều khiển — HTML chỉ khai báo "chỗ trống" (id).
+    -->
+    <main class="app" id="app">
+      <h1 class="title">Bé Vui Học Từ Vựng</h1>
+
+      <section class="card" id="the-tu">
+        <div class="emoji" id="emoji">🍎</div>
+        <div class="word" id="tu-tieng-anh">apple</div>
+        <div class="phonetic" id="phien-am">/ˈæp.əl/</div>
+        <div class="meaning" id="nghia-tieng-viet">Quả táo</div>
+      </section>
+
+      <p class="counter" id="vi-tri">Từ 1 / 8</p>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="nut-tu-tiep-theo" type="button">Từ tiếp theo</button>
+        <button class="btn btn-secondary" id="nut-doi-mau" type="button">Đổi màu nền</button>
+      </div>
+    </main>
+
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
