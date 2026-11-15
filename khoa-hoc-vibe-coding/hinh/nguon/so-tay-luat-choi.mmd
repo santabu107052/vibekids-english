@@ -1,0 +1,12 @@
+flowchart TD
+    A(["1. Viết test trước<br/>chạy thử phải ĐỎ"])
+    B["2. Viết prompt<br/>Bối cảnh · Việc · Ràng buộc · Nghiệm thu"]
+    C["3. AI thi công<br/>chỉ theo đúng prompt"]
+    D{"4. Test xanh hết?"}
+    E["5. Bấm tay nhìn bằng mắt"]
+    F(["6. Xong bài<br/>Buổi 5 mới deploy"])
+    A --> B --> C --> D
+    D -->|"Còn đỏ"| C
+    D -->|"Xanh hết"| E
+    E -->|"Chưa đúng ý"| B
+    E -->|"Đúng"| F
