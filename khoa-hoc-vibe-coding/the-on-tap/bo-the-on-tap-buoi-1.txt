@@ -7,4 +7,4 @@ Test PASS nghĩa là gì	Chỉ chứng minh chức năng chưa hỏng, KHÔNG ch
 Mở app the-tu-vung-mini bằng câu lệnh nào	cd vào thư mục the-tu-vung-mini rồi python3 -m http.server 8123, mở http://127.0.0.1:8123	buoi1-lenh
 Chạy test của the-tu-vung-mini bằng câu lệnh nào	node --test test/khoa-hoc.test.mjs - kết quả đúng là pass 10 fail 0	buoi1-lenh
 Terminal đứng im sau khi mở http.server nghĩa là gì	Đang chạy bình thường (đang trực quầy) - muốn tắt bấm Ctrl + C	buoi1-terminal
-4 chữ BBNR là gì	Bối cảnh - Việc - Ràng buộc - Nghiệm thu	buoi1-prompt
+4 chữ BVRN gồm những gì	B = Bối cảnh - V = Việc - R = Ràng buộc - N = Nghiệm thu (tên đúng là BVRN)	buoi1-prompt
