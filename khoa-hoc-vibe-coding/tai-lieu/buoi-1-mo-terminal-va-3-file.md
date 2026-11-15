@@ -1,7 +1,7 @@
 # 🎓 BUỔI 1 — MỞ CỬA LẦN ĐẦU: APP "BÉ VUI HỌC TỪ VỰNG" ĐÃ CHẠY
 
 > **Học viên:** chưa biết gì về code · **Nhịp:** 60–90 phút · **Dự án:** `the-tu-vung-mini` (khung số 1, đã dựng sẵn và **đã kiểm chứng chạy thật**)
-> **Kết thúc buổi:** bạn mở được app bằng Terminal, hiểu 3 file là 3 bộ phận, và tự làm **bài tập BBNR đầu tiên**.
+> **Kết thúc buổi:** bạn mở được app bằng Terminal, hiểu 3 file là 3 bộ phận, và tự làm **bài tập BVRN đầu tiên**.
 
 ![Xem trước app khung số 1](../the-tu-vung-mini/preview-buoi-1.png)
 
@@ -149,19 +149,19 @@ Bạn phải thấy **`pass 10` / `fail 0`**. Con số `10` này là **vạch m�
 
 > **Yêu cầu:** thêm 1 nút thứ ba tên **"Quay lại từ trước"**, bấm thì lùi 1 từ; đang ở từ đầu thì nhảy về **từ cuối** (ngược của "Từ tiếp theo").
 
-Nhưng — **bạn chưa tự viết code**. Bạn viết **prompt BBNR** rồi **dán vào ô chat với tôi**. Tôi sẽ sửa code chạy thật, sau đó bạn chạy lại test và tự bấm thử.
+Nhưng — **bạn chưa tự viết code**. Bạn viết **prompt BVRN** rồi **dán vào ô chat với tôi**. Tôi sẽ sửa code chạy thật, sau đó bạn chạy lại test và tự bấm thử.
 
-**Khuôn mẫu để bạn điền (copy khuôn này, sửa chỗ ngoặc vuông):**
+**Khuôn mẫu để bạn điền — dùng đúng 4 nhãn B · V · R · N:**
 
 ```text
-B — Bối cảnh: Dự án nhỏ ở thư mục khoa-hoc-vibe-coding/the-tu-vung-mini
+B (Bối cảnh): Dự án nhỏ ở thư mục khoa-hoc-vibe-coding/the-tu-vung-mini
     gồm index.html, style.css, script.js và test/khoa-hoc.test.mjs (10 test đang PASS).
-V — Việc: Thêm nút thứ ba "Quay lại từ trước" cạnh 2 nút hiện có. Bấm thì hiện từ
+V (Việc): Thêm nút thứ ba "Quay lại từ trước" cạnh 2 nút hiện có. Bấm thì hiện từ
     phía trước; đang ở từ đầu (Từ 1/8) thì nhảy về từ cuối (Từ 8/8).
-N — Ràng buộc: Không đổi giao diện hiện tại, không đổi màu, không xoá nút cũ.
+R (Ràng buộc): Không đổi giao diện hiện tại, không đổi màu, không xoá nút cũ.
     Nút mới dùng cùng kiểu .btn như nút "Đổi màu nền".
     Thêm hàm thuần `timViTriTruoc(viTriHienTai, tongSoTu)` trong script.js.
-R — Nghiệm thu: Thêm 3 test mới (bình thường / từ đầu nhảy về cuối / dữ liệu rác).
+N (Nghiệm thu): Thêm 3 test mới (bình thường / từ đầu nhảy về cuối / dữ liệu rác).
     Chạy `node --test test/khoa-hoc.test.mjs` phải ra pass 13, fail 0.
     Bấm thử trên trình duyệt: từ apple ➔ quay lại thì ra rice (Từ 8/8).
 ```

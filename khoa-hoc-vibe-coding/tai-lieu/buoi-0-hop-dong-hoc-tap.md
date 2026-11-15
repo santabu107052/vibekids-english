@@ -46,16 +46,20 @@ Vì sao không chọn luôn VibeKids làm dự án học? Vì nó đã có ~hàn
 
 ![Sơ đồ vòng lặp Vibe Coding](../hinh/buoi-0-vong-lap.png)
 
-**Công thức prompt BBNR** (dùng ở Buổi 3, nhưng nhìn trước cho dễ hình dung):
+**Công thức prompt BVRN** (dùng ở Buổi 3, nhưng nhìn trước cho dễ hình dung):
 
 | Chữ | Nghĩa | Ví dụ |
 | :--- | :--- | :--- |
-| **B** | Bối cảnh | "Dự án React ở thư mục english-for-kids" |
-| **B** (2) | Việc cần làm | "Thêm nút Từ tiếp theo" |
-| **N** | Ràng buộc | "Không sửa file nào ngoài `src/App.tsx`, giữ nguyên style" |
-| **R** | Nghiệm thu | "Nhấn nút thì đổi sang từ kế tiếp, không lỗi console" |
+| **B** | **B**ối cảnh — đang ở đâu, có gì | "Dự án React ở thư mục english-for-kids" |
+| **V** | **V**iệc cần làm | "Thêm nút Từ tiếp theo" |
+| **R** | **R**àng buộc — không được làm gì | "Không sửa file nào ngoài `src/App.tsx`, giữ nguyên style" |
+| **N** | **N**ghiệm thu — làm sao biết là đúng | "Nhấn nút thì đổi sang từ kế tiếp, không lỗi console" |
 
-**Nhìn trước: prompt BBNR giống như một công thức nấu ăn 🍰**
+> ⚠️ **Đính chính (15/11/2026, học viên phát hiện):** buổi 0 trước đây in nhầm là "BBNR". Tên đúng là **BVRN** — bốn chữ cái đầu của Bối cảnh · Việc · Ràng buộc · Nghiệm thu. Dùng **BVRN** từ nay về sau.
+
+**Nhìn trước: prompt BVRN giống như một công thức nấu ăn 🍰**
+
+*(Tên gọi gọn nhớ là **BVRN** — lấy 4 chữ cái đầu: **B**ối cảnh · **V**iệc · **R**àng buộc · **N**ghiệm thu.)*
 
 ![Infographic: vòng lặp vibe coding như một quy trình nấu ăn — 4 bước nguyên liệu, nấu, kiểm tra, dọn ra](../hinh/buoi-0-infographic-bbnr.jpg)
 
@@ -103,7 +107,7 @@ Vì sao không chọn luôn VibeKids làm dự án học? Vì nó đã có ~hàn
 
 ## 📌 7. LỘ TRÌNH ÔN TẬP & BƯỚC TIẾP THEO
 
-- 🗓️ **Ôn 1 (sau 1 ngày):** nhớ lại 4 chữ **BBNR** và 3 nhánh của vòng lặp vibe coding (ảnh ý → prompt → chạy & kiểm).
+- 🗓️ **Ôn 1 (sau 1 ngày):** nhớ lại 4 chữ **BVRN** (Bối cảnh · Việc · Ràng buộc · Nghiệm thu) và 3 nhánh của vòng lặp vibe coding (ảnh ý → prompt → chạy & kiểm).
 - 🗓️ **Ôn 2 (sau 3 ngày):** giải thích bằng lời của bạn, trong 60 giây, cho một người khác nghe "vibe coding là gì và vì sao AI vẫn cần bạn duyệt" (Feynman).
 - 🗓️ **Ôn 3 (sau 7 ngày):** bạn sẽ tự trải qua đúng 3 rủi ro này và đối chiếu — nếu chưa gặp, ta sẽ gài vào bài tập.
 - 🚀 **Bước tiếp theo:** **Buổi 1 — "Mở Terminal lần đầu: chạy một dự án do AI tạo"**. Bạn chỉ cần ngồi trước máy, không cần cài gì thêm.
