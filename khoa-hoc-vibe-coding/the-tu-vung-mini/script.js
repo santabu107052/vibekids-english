@@ -27,6 +27,22 @@ export function timViTriTiepTheo(viTriHienTai, tongSoTu) {
   return { index: keTiep, quayVong: false };
 }
 
+/**
+ * Tính vị trí từ TRƯỚC (bài tập D — theo prompt BVRN của học viên).
+ * Đang ở từ đầu (0) thì nhảy về từ cuối; dữ liệu không hợp lệ thì về 0.
+ * @returns {{index: number, quayVong: boolean}}
+ */
+export function timViTriTruoc(viTriHienTai, tongSoTu) {
+  if (!Number.isInteger(tongSoTu) || tongSoTu <= 0) {
+    return { index: 0, quayVong: false };
+  }
+  const truoc = viTriHienTai - 1;
+  if (truoc < 0) {
+    return { index: tongSoTu - 1, quayVong: true };
+  }
+  return { index: truoc, quayVong: false };
+}
+
 /** Đổi màu nền: xoay vòng qua bảng màu khai báo ở đây. */
 export const BANG_MAU = ['hong', 'xanh', 'vang', 'tim'];
 
@@ -62,6 +78,7 @@ export function khoiDong(doc, boTu) {
   const theTu = tim('the-tu');
   const nutTuTiepTheo = tim('nut-tu-tiep-theo');
   const nutDoiMau = tim('nut-doi-mau');
+  const nutTuTruoc = tim('nut-tu-truoc');
 
   let viTri = 0;
   let mau = 'hong';
@@ -83,6 +100,14 @@ export function khoiDong(doc, boTu) {
     viTri = timViTriTiepTheo(viTri, boTu.length).index;
     veLaiThe();
   });
+
+  // Nút thứ ba: chỉ gắn khi trang có nút này (giữ 2 nút cũ chạy y như trước)
+  if (nutTuTruoc) {
+    nutTuTruoc.addEventListener('click', () => {
+      viTri = timViTriTruoc(viTri, boTu.length).index;
+      veLaiThe();
+    });
+  }
 
   nutDoiMau.addEventListener('click', () => {
     mau = mauTiepTheo(mau);

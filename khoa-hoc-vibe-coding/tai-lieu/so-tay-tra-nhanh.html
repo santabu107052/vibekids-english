@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SỔ TAY TRA NHANH: BUỔI 0 & BUỔI 1 | Khoá học Vibe Coding</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body class="trang-bai">
+<nav class="nav-bai"><a class="nut-nav nut-nav-chu" href="../index.html">🏠 Trang chủ khoá học</a></nav>
+<main class="noi-dung">
+<h1>📒 SỔ TAY TRA NHANH — BUỔI 0 &amp; BUỔI 1</h1>
+<blockquote>
+<p>Không phải bài giảng mới. Đây là <strong>trang tra cứu 30 giây</strong> khi bạn quên một khái niệm.
+Mỗi mục: <strong>định nghĩa 1 câu → ví dụ thật từ app của bạn → câu chốt phải nhớ</strong>.</p>
+</blockquote>
+<hr>
+<h2>🔑 1. BVRN — công thức prompt (quên là mở đây)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Nhãn</th>
+<th style="text-align:left">Nghĩa</th>
+<th style="text-align:left">Trả lời câu hỏi</th>
+<th style="text-align:left">Ví dụ từ bài tập D của bạn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>B</strong></td>
+<td style="text-align:left">Bối cảnh</td>
+<td style="text-align:left">Đang ở đâu, có gì?</td>
+<td style="text-align:left">&quot;App ở thư mục the-tu-vung-mini, có 10 test đang PASS&quot;</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>V</strong></td>
+<td style="text-align:left">Việc</td>
+<td style="text-align:left">Muốn làm gì?</td>
+<td style="text-align:left">&quot;Thêm nút thứ ba 'Quay lại từ trước'…&quot;</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>R</strong></td>
+<td style="text-align:left">Ràng buộc</td>
+<td style="text-align:left">Không được làm gì?</td>
+<td style="text-align:left">&quot;Không đổi giao diện, không xoá nút cũ, dùng class <code>.btn</code>&quot;</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>N</strong></td>
+<td style="text-align:left">Nghiệm thu</td>
+<td style="text-align:left">Làm sao biết là đúng?</td>
+<td style="text-align:left">&quot;5 test mới xanh + 10 test cũ vẫn xanh + bấm tay apple → rice&quot;</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Câu chốt:</strong> tên đúng là <strong>BVRN</strong>, không phải BBNR. Thiếu <strong>R</strong> = AI tự do sáng tạo (hôm nay: nó sẽ tự vẽ giao diện nút mới).</p>
+<hr>
+<h2>🎯 2. Luật chơi khi cho AI sửa code (đỏ trước — xanh sau)</h2>
+<p><img src="../hinh/so-tay-luat-choi.png" alt="Sơ đồ luật chơi: viết test đỏ trước, AI thi công theo prompt BVRN, test xanh, rồi bấm tay nhìn bằng mắt, mới coi là xong"></p>
+<p><strong>Câu chốt:</strong> &quot;<strong>Đỏ trước → xanh sau → bấm tay nhìn</strong>&quot;. Không có bước &quot;đỏ trước&quot; nghĩa là bạn đang sửa mò.</p>
+<hr>
+<h2>🦴 3. Ba file = ba bộ phận (mở app ra là nhớ)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Bộ phận</th>
+<th style="text-align:left">File</th>
+<th style="text-align:left">Trả lời</th>
+<th style="text-align:left">Sửa khi muốn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Xương</td>
+<td style="text-align:left"><code>index.html</code></td>
+<td style="text-align:left">Có gì trên trang?</td>
+<td style="text-align:left">Đổi tiêu đề, thêm nút, thêm chỗ trống <code>id</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Áo</td>
+<td style="text-align:left"><code>style.css</code></td>
+<td style="text-align:left">Trông thế nào?</td>
+<td style="text-align:left">Màu, cỡ chữ, bo góc</td>
+</tr>
+<tr>
+<td style="text-align:left">Não</td>
+<td style="text-align:left"><code>script.js</code></td>
+<td style="text-align:left">Bấm thì làm gì?</td>
+<td style="text-align:left">Thêm từ vựng, thêm nút, đổi luật</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Câu chốt:</strong> sửa chữ trong HTML mà app không đổi → <strong>không hỏng</strong>, do <code>script.js</code> chạy sau và ghi đè.</p>
+<hr>
+<h2>🏷️ 4. <code>id</code> — số báo danh</h2>
+<p><code>&lt;div id=&quot;emoji&quot;&gt;🍎&lt;/div&gt;</code> ← xương khai báo · <code>tim('emoji').textContent = …</code> ← não tìm tới.</p>
+<p><strong>Câu chốt:</strong> đổi <code>id</code> ở một file mà quên file kia → nút bấm &quot;gõ cửa phòng không có ai&quot; → <strong>lỗi số 1 của người mới</strong>.</p>
+<hr>
+<h2>🧪 5. Test — người gác cổng (giống bác thợ điện bật thử từng công tắc)</h2>
+<ul>
+<li><code>node --test test/khoa-hoc.test.mjs</code> → 10 test gốc, phải <strong>10/10</strong> sau mỗi lần sửa.</li>
+<li><code>node --test _bai-tap-d/test/nghiem-thu.mjs</code> → 5 test của bài tập nút &quot;Quay lại&quot;.</li>
+</ul>
+<p><strong>Câu chốt:</strong> <strong>test xanh KHÔNG chứng minh app đúng ý.</strong> Test chạy trên &quot;trang giả&quot;; xoá <code>div#emoji</code> vẫn xanh nhưng app sẽ lỗi. Vì vậy <strong>luôn bấm tay nhìn bằng mắt</strong>.</p>
+<hr>
+<h2>💻 6. Terminal — 3 kiểu &quot;im lặng&quot; phải phân biệt</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Bạn thấy</th>
+<th style="text-align:left">Nghĩa</th>
+<th style="text-align:left">Xử lý</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Dấu nhắc <code>~ %</code> chờ sẵn, gõ không hiện chữ</td>
+<td style="text-align:left">Terminal chưa nhận phím / đang bôi đen</td>
+<td style="text-align:left">Click vào vùng trắng, bấm <code>Esc</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Chạy xong, <strong>không in gì</strong>, dấu nhắc quay lại</td>
+<td style="text-align:left"><strong>Thành công mà không có gì để báo</strong></td>
+<td style="text-align:left">Không phải lỗi</td>
+</tr>
+<tr>
+<td style="text-align:left">Dấu nhắc <strong>không quay lại</strong></td>
+<td style="text-align:left">Cửa sổ đang bận (ví dụ <code>python3 -m http.server</code>)</td>
+<td style="text-align:left"><strong>Ctrl + C</strong> để nhả ra</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Câu chốt:</strong> trước khi chạy lệnh mới, hỏi <em>&quot;dấu nhắc đã quay lại chưa?&quot;</em>.</p>
+<hr>
+<h2>📜 7. Đọc log — 200, 404, lỗi đỏ</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Dòng</th>
+<th style="text-align:left">Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>&quot;GET / 200&quot;</code></td>
+<td style="text-align:left">Trình duyệt xin trang → <strong>có và OK</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>&quot;GET /favicon.ico 404&quot;</code></td>
+<td style="text-align:left">Xin icon tab → <strong>không có → bình thường</strong>, app không lỗi</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>zsh: command not found: #</code></td>
+<td style="text-align:left">Dán cả dòng chú thích <code>#</code> vào Terminal → <strong>bỏ các dòng <code>#</code></strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>SyntaxError: does not provide an export named …</code></td>
+<td style="text-align:left">Tính năng đó <strong>chưa tồn tại</strong> trong code → đúng khi test viết trước</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>🧰 8. Bộ lệnh dùng suốt khoá (copy dán được ngay)</h2>
+<pre><code class="language-bash">cd /Users/santabu/Documents/deepseek-harness/default-workspace/english-for-kids/khoa-hoc-vibe-coding/the-tu-vung-mini
+python3 -m http.server 8123
+</code></pre>
+<pre><code class="language-bash">cd /Users/santabu/Documents/deepseek-harness/default-workspace/english-for-kids/khoa-hoc-vibe-coding/the-tu-vung-mini &amp;&amp; node --test test/khoa-hoc.test.mjs &amp;&amp; node --test _bai-tap-d/test/nghiem-thu.mjs
+</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Việc</th>
+<th style="text-align:left">Lệnh</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Mở app</td>
+<td style="text-align:left">dòng 1 ở trên, rồi mở <code>http://127.0.0.1:8123</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Tắt app</td>
+<td style="text-align:left"><strong>Ctrl + C</strong></td>
+</tr>
+<tr>
+<td style="text-align:left">Chạy cả 2 bộ test</td>
+<td style="text-align:left">dòng 2 ở trên (kỳ vọng <code>pass 10</code> và <code>pass 5</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left">Xem đang ở thư mục nào</td>
+<td style="text-align:left"><code>pwd</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>❓ 9. Tự hỏi mỗi lần AI sửa xong code (checklist 4 câu)</h2>
+<ol>
+<li>AI có <strong>sửa đúng file</strong> trong prompt không? (<code>git diff --stat</code> — buổi 5 sẽ học)</li>
+<li>Có <strong>vượt ràng buộc</strong> không (đổi giao diện, xoá nút cũ, thêm file lạ)?</li>
+<li><strong>Test cũ còn xanh</strong> không?</li>
+<li>Tôi đã <strong>bấm tay</strong> và thấy đúng ý chưa?</li>
+</ol>
+<blockquote>
+<p>Nếu câu 1–4 chưa đủ &quot;có&quot; → <strong>chưa xong bài</strong>, dù AI nói &quot;đã hoàn thành&quot;.</p>
+</blockquote>
+
+</main>
+<footer class="chan-trang">
+  <p>Khoá học Vibe Coding — Tutor tự động đóng gói từ Markdown. Sửa bài gốc trong <code>khoa-hoc-vibe-coding/tai-lieu/</code> rồi chạy lại <code>node tools/build-course-site.mjs</code>.</p>
+</footer>
+</body>
+</html>
