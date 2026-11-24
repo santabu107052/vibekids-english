@@ -13,12 +13,11 @@ import { SoundDetectiveGame } from '../games/SoundDetectiveGame';
 import { SpellingBeeGame } from '../games/SpellingBeeGame';
 import { SentenceBuilderGame } from '../games/SentenceBuilderGame';
 
-// 🎮 5 Game Vui Chơi Mới (Play-to-Learn)
+// 🎮 4 Game Vui Chơi Mới (Play-to-Learn)
 import { BubblePopGame } from '../games/BubblePopGame';
 import { MysteryGardenGame } from '../games/MysteryGardenGame';
 import { CandyBuilderGame } from '../games/CandyBuilderGame';
 import { ZooFeedingGame } from '../games/ZooFeedingGame';
-import { SecretAnimalGame } from '../games/SecretAnimalGame';
 
 // ✍️ 2 Game Luyện Chính Tả
 import { MissingLettersGame } from '../games/MissingLettersGame';
@@ -96,7 +95,7 @@ export const GameRouter: React.FC<GameRouterProps> = ({
       return <SoundDetectiveGame {...commonProps} />;
     case 'spelling_bee':
       return <SpellingBeeGame {...commonProps} />;
-    // 🎮 5 Game Vui Chơi Mới (Play-to-Learn)
+    // 🎮 4 Game Vui Chơi Mới (Play-to-Learn)
     case 'bubble_pop':
       return <BubblePopGame {...commonProps} />;
     case 'mystery_garden':
@@ -105,8 +104,6 @@ export const GameRouter: React.FC<GameRouterProps> = ({
       return <CandyBuilderGame {...commonProps} />;
     case 'zoo_feeding':
       return <ZooFeedingGame {...commonProps} />;
-    case 'secret_animal':
-      return <SecretAnimalGame {...commonProps} />;
     // ✍️ 2 Game Luyện Chính Tả
     case 'missing_letters':
       return <MissingLettersGame {...commonProps} />;

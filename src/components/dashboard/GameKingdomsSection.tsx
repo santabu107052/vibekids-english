@@ -48,14 +48,6 @@ const vocabGamesList: GameItem[] = [
     color: 'from-lime-400 to-emerald-500',
     badge: 'Nuôi thú',
   },
-  {
-    id: 'secret_animal',
-    title: 'Vị Khách Bí Mật',
-    desc: 'Giải mã từ bí ẩn qua gợi ý. Càng ít gợi ý bé càng được nhiều điểm thưởng!',
-    icon: '🕵️‍♀️',
-    color: 'from-violet-400 to-purple-500',
-    badge: 'Giải đố',
-  },
   // ✍️ 2 Game Luyện Chính Tả (mới)
   {
     id: 'missing_letters',

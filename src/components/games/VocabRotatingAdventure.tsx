@@ -4,7 +4,7 @@ import { recordGameResult, updateWordProgress } from '../../services/storage';
 import { playWordAudio } from '../../services/dictionaryApi';
 import { GameHeader } from './GameHeader';
 import { GameVictoryModal } from './GameVictoryModal';
-import { Check, X, Volume2, Sparkles, ArrowRight, Lightbulb, RotateCcw } from 'lucide-react';
+import { Check, X, Volume2, Sparkles, ArrowRight, RotateCcw } from 'lucide-react';
 import { soundManager } from '../../services/soundEffects';
 
 interface VocabRotatingAdventureProps {
@@ -25,7 +25,6 @@ export type MiniGameVariant =
   // 🎮 5 game mới (play-to-learn + chính tả)
   | 'missing_letters'
   | 'spelling_detective'
-  | 'secret_animal'
   | 'zoo_feeding'
   | 'bubble_pop'
   | 'word_match'
@@ -96,10 +95,6 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   // States for Spelling Detective (Thám tử chính tả)
   const [sdOptions, setSdOptions] = useState<{ text: string; isCorrect: boolean }[]>([]);
 
-  // States for Secret Animal (Vị khách bí mật)
-  const [saClues, setSaClues] = useState(0);
-  const [saAudioRevealed, setSaAudioRevealed] = useState(false);
-
   // States for Zoo Feeding (Bữa tiệc sở thú)
   const [zfMood, setZfMood] = useState<'waiting' | 'eating' | 'happy' | 'sad' | 'angry'>('waiting');
   const [zfPlate, setZfPlate] = useState<string | null>(null);
@@ -114,14 +109,13 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
   const [roundHasError, setRoundHasError] = useState(false);
   const [gameResult, setGameResult] = useState<GameScoreResult | null>(null);
 
-  // 11 Mini-Games luân phiên (đã loại Lật Thẻ + Bong Bóng Bắt Từ cũ vì trùng cơ chế với Bong Bóng Từ Vựng)
+  // 10 Mini-Games luân phiên (đã loại Lật Thẻ + Bong Bóng Bắt Từ cũ + Vị Khách Bí Mật)
   const VARIANT_CYCLE: MiniGameVariant[] = [
     'sound_detective',
     'scramble',
     'spelling',
     'missing_letters',
     'spelling_detective',
-    'secret_animal',
     'zoo_feeding',
     'bubble_pop',
     'word_match',
@@ -266,9 +260,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
       ])
     );
 
-    // ===== Prepare Secret Animal / Zoo / Bubble =====
-    setSaClues(1);
-    setSaAudioRevealed(false);
+    // ===== Prepare Zoo / Bubble =====
     setZfMood('waiting');
     setZfPlate(null);
     setZfWrong(0);
@@ -280,7 +272,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
     setCurrentRound(roundNum);
 
     // Audio cue — CHỈ phát âm tự động ở các game cần nghe.
-    // TUYỆT ĐỐI KHÔNG phát âm với 'secret_animal' (sẽ lộ đáp án) hay game chỉ dùng mặt chữ.
+    // Không phát âm ở game chỉ dùng mặt chữ.
     const AUDIO_CUE_VARIANTS: MiniGameVariant[] = ['sound_detective', 'spelling', 'scramble'];
     if (AUDIO_CUE_VARIANTS.includes(variant)) {
       setTimeout(() => {
@@ -418,8 +410,6 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
         return { name: 'Chữ Cái Bị Mất', icon: '🔤', instruction: 'Điền các chữ cái còn thiếu để hoàn thành từ:' };
       case 'spelling_detective':
         return { name: 'Thám Tử Chính Tả', icon: '⭐', instruction: 'Tìm ra từ được viết ĐÚNG chính tả:' };
-      case 'secret_animal':
-        return { name: 'Vị Khách Bí Mật', icon: '🕵️‍♀️', instruction: 'Dùng gợi ý để đoán từ bí ẩn:' };
       case 'zoo_feeding':
         return { name: 'Bữa Tiệc Sở Thú', icon: '🍽️', instruction: 'Dịch nghĩa và cho bạn thú ăn đúng món:' };
       case 'bubble_pop':
@@ -465,7 +455,7 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
           <span>Câu {currentRound}: <strong className="text-indigo-700">{variantInfo.name}</strong></span>
         </span>
         <span className="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white font-extrabold text-[11px]">
-          Luân phiên 11 Game 🔄
+          Luân phiên 10 Game 🔄
         </span>
       </div>
 
@@ -818,106 +808,6 @@ export const VocabRotatingAdventure: React.FC<VocabRotatingAdventureProps> = ({
                     {opt.text}
                   </span>
                   {showCorrect && <span className="text-xl">⭐</span>}
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-center text-xs text-slate-400">{variantInfo.instruction}</p>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* VARIANT 7: SECRET ANIMAL (Vị khách bí mật)                 */}
-      {/* ======================================================== */}
-      {currentVariant === 'secret_animal' && (
-        <div className="space-y-4">
-          <div className="bg-linear-to-r from-violet-600 to-fuchsia-600 rounded-3xl p-5 text-white text-center shadow-xl">
-            <div className="text-xs font-bold uppercase tracking-wider text-purple-200 mb-1">
-              🎭 Từ bí ẩn cần tìm
-            </div>
-            <div className="text-3xl mb-1">🔍</div>
-            <div className="text-[11px] text-purple-100">
-              Đã mở {saClues}/3 gợi ý{saAudioRevealed ? ' + âm thanh' : ''}
-            </div>
-          </div>
-
-          <div className="space-y-2.5">
-            {saClues >= 1 && (
-              <div className="bg-white rounded-2xl p-3.5 border-2 border-purple-100 flex items-start gap-3">
-                <span className="text-lg">🗂️</span>
-                <div>
-                  <div className="text-[10px] font-black text-purple-600 uppercase">Gợi ý 1 — Chủ đề</div>
-                  <div className="text-sm font-semibold text-slate-700">{currentWord.category}</div>
-                </div>
-              </div>
-            )}
-            {saClues >= 2 && (
-              <div className="bg-white rounded-2xl p-3.5 border-2 border-purple-100 flex items-start gap-3">
-                <span className="text-lg">📖</span>
-                <div>
-                  <div className="text-[10px] font-black text-purple-600 uppercase">Gợi ý 2 — Câu ví dụ</div>
-                  <div className="text-sm font-semibold text-slate-700">
-                    {currentWord.exampleSentence.replace(new RegExp(currentWord.word, 'gi'), '_____')}
-                  </div>
-                </div>
-              </div>
-            )}
-            {saClues >= 3 && (
-              <div className="bg-white rounded-2xl p-3.5 border-2 border-purple-100 flex items-start gap-3">
-                <span className="text-lg">💡</span>
-                <div>
-                  <div className="text-[10px] font-black text-purple-600 uppercase">Gợi ý 3 — Định nghĩa</div>
-                  <div className="text-sm font-semibold text-slate-700">{currentWord.definitionEn}</div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {!saAudioRevealed && (
-            <button
-              type="button"
-              onClick={() => {
-                if (saClues < 3) {
-                  setSaClues(saClues + 1);
-                } else {
-                  setSaAudioRevealed(true);
-                  playWordAudio(currentWord.word, currentWord.audioUrl);
-                }
-              }}
-              className="w-full py-2.5 rounded-2xl border-2 border-dashed border-purple-300 text-purple-700 hover:bg-purple-50 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            >
-              <Lightbulb size={14} />
-              {saClues < 3 ? 'Mở thêm gợi ý' : 'Mở gợi ý phát âm (cuối cùng)'}
-            </button>
-          )}
-
-          {saAudioRevealed && (
-            <button
-              onClick={() => playWordAudio(currentWord.word, currentWord.audioUrl)}
-              className="w-full py-2.5 rounded-2xl bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <Volume2 size={14} /> Nghe lại phát âm
-            </button>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            {options.map((opt) => {
-              const isTarget = opt.id === currentWord.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  disabled={isAnswered}
-                  onClick={() => handleAnswerSubmit(isTarget)}
-                  className={`p-4 rounded-3xl border-3 font-black text-sm transition-all shadow-sm active:scale-95 cursor-pointer capitalize ${
-                    isAnswered
-                      ? isTarget
-                        ? 'bg-emerald-500 border-emerald-600 text-white'
-                        : 'bg-slate-50 border-slate-200 text-slate-400 opacity-50'
-                      : 'bg-white border-purple-200 text-purple-950 hover:border-purple-400 hover:bg-purple-50'
-                  }`}
-                >
-                  {opt.word}
                 </button>
               );
             })}
